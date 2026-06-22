@@ -1,0 +1,118 @@
+.window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  min-height: 160px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+}
+
+.window--active {
+  border-color: #4a4a52;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+.window__titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 12px;
+  user-select: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.window__titlebar:active {
+  
+}
+
+.window__title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.window--active .window__title {
+  color: var(--text);
+}
+
+
+/* macOS traffic-light controls */
+.window__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
+}
+
+.window__btn {
+  width: 13px;
+  height: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #4b4b52; /* gray when window not focused */
+  transition: background 0.12s;
+}
+
+.window--active .window__btn--close { background: #ff5f57; }
+.window--active .window__btn--min { background: #febc2e; }
+.window--active .window__btn--max { background: #28c840; }
+
+.window__btn-glyph {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+/* glyphs appear when hovering the cluster, macOS-style */
+.window__controls:hover .window__btn-glyph {
+  opacity: 1;
+}
+
+.window__body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.window__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.window__resize::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid #54545c;
+  border-bottom: 1.5px solid #54545c;
+}

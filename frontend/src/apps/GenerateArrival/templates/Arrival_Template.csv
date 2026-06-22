@@ -1,0 +1,3 @@
+SLNO,ArrivalCert Control Number,Arrival Date  (YYYYMMDDHHMM),Timezone,Inbond Destination Office Code,Warehouse Sub-loc Code,AWB/Bill of Lading
+,M-Mandatory,Numeric,A-Alpha,N-Numeric,N-Numeric,
+,"M,1...25 AN",,,,,"O,1…25 AN"
