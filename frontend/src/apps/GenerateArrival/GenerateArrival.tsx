@@ -2,6 +2,7 @@ import {useDropzone} from 'react-dropzone'
 import './GenerateArrival.css'
 import { useCallback, useState } from 'react';
 import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 
 const TIMEZONE = "ED"
 const DEST_CODE = "'0497"
@@ -69,30 +70,53 @@ export function GenerateArrival() {
     const [trackingNumbers, setTrackingNumbers] = useState<string[]>([])
     const [isParsing, setIsParsing] = useState(false)
 
-    const handleGenerate = () => {
+    const aggregateRows = (rows: string[][]) => {
+        const uniqueBoxNumbers = new Set<string>()
+        const currentTrackingNumbers = []
+        for (const row of rows.slice(1)) {
+            uniqueBoxNumbers.add(row[2])
+            currentTrackingNumbers.push(row[1])
+        }
+
+        setMetadata({
+            awb: awbNumber,
+            box_amount: uniqueBoxNumbers.size,
+            tracking_amount: currentTrackingNumbers.length,
+        })
+
+        setTrackingNumbers(currentTrackingNumbers)
+        setIsParsing(false)
+    }
+
+    const handleGenerate = async () => {
         if (!uploadedFile) return
 
         setIsParsing(true)
+
+        const isXlsx = uploadedFile.name.toLowerCase().endsWith('.xlsx')
+        if (isXlsx) {
+            try {
+                const buf = await uploadedFile.arrayBuffer()
+                const wb = XLSX.read(buf)
+                const sheet = wb.Sheets[wb.SheetNames[0]]
+                const rows = XLSX.utils.sheet_to_json<string[]>(sheet, {
+                    header: 1,
+                    raw: false,
+                    blankrows: true,
+                })
+                aggregateRows(rows)
+            } catch (err) {
+                console.error(err)
+                setIsParsing(false)
+            }
+            return
+        }
+
         Papa.parse(uploadedFile, {
             header: false,
             skipEmptyLines: false,
             complete: (results) => {
-                const rows = results.data as string[][]
-                const uniqueBoxNumbers = new Set<string>()
-                const currentTrackingNumbers = []
-                for (const row of rows.slice(1)) {
-                    uniqueBoxNumbers.add(row[2])
-                    currentTrackingNumbers.push(row[1])
-                }
-
-                setMetadata({
-                    awb: awbNumber,
-                    box_amount: uniqueBoxNumbers.size,
-                    tracking_amount: currentTrackingNumbers.length,
-                })
-
-                setTrackingNumbers(currentTrackingNumbers)
-                setIsParsing(false)
+                aggregateRows(results.data as string[][])
             },
             error: (err) => {
                 console.error(err)
@@ -114,7 +138,10 @@ export function GenerateArrival() {
     const {getRootProps, getInputProps, isDragActive} = useDropzone(
     {
         onDrop,
-        accept: { 'text/csv': ['.csv']},
+        accept: {
+            'text/csv': ['.csv'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+        },
         maxFiles: 1,
     })
 
@@ -155,7 +182,7 @@ export function GenerateArrival() {
                 <header className='arrival-form__header'>
                     <h2 className='arrival-form__title'>Generate Arrival</h2>
                     <p className='arrival-form__subtitle'>
-                        Enter the AWB number and upload the box information CSV.
+                        Enter the AWB number and upload the box information CSV or XLSX.
                     </p>
                 </header>
 
@@ -198,7 +225,7 @@ export function GenerateArrival() {
                             <span className='dropzone__file-badge' aria-hidden='true'>{FileIcon}</span>
                             <span className='dropzone__file-name'>{uploadedFile.name}</span>
                             <span className='dropzone__file-meta'>
-                                {Math.round(uploadedFile.size / 1000)} KB · CSV
+                                {Math.round(uploadedFile.size / 1000)} KB · {uploadedFile.name.toLowerCase().endsWith('.xlsx') ? 'XLSX' : 'CSV'}
                             </span>
                             <button
                                 type='button'
@@ -216,10 +243,10 @@ export function GenerateArrival() {
                             <span className='dropzone__icon' aria-hidden='true'>{UploadIcon}</span>
                             <p className='dropzone__text'>
                                 {isDragActive
-                                    ? 'Drop the CSV here…'
-                                    : 'Drag & drop a CSV here, or click to browse'}
+                                    ? 'Drop the file here…'
+                                    : 'Drag & drop a CSV or XLSX here, or click to browse'}
                             </p>
-                            <span className='dropzone__hint'>CSV only · max 1 file</span>
+                            <span className='dropzone__hint'>CSV or XLSX · max 1 file</span>
                         </div>
                     )}
                 </div>
