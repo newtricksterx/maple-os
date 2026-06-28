@@ -69,11 +69,23 @@ export function GenerateArrival() {
     const [metadata, setMetadata] = useState<BOX_INFORMATION_METADATA | null>(null)
     const [trackingNumbers, setTrackingNumbers] = useState<string[]>([])
     const [isParsing, setIsParsing] = useState(false)
+    const [filterMode, setFilterMode] = useState<'include' | 'exclude'>('exclude')
+    const [boxFilterText, setBoxFilterText] = useState('')
+
+    const parseBoxFilter = (text: string) =>
+        new Set(text.split(/[\s,]+/).map((s) => s.trim().toLowerCase()).filter(Boolean))
 
     const aggregateRows = (rows: string[][]) => {
+        const boxSet = parseBoxFilter(boxFilterText)
+        const dataRows = rows.slice(1).filter((row) => {
+            if (boxSet.size === 0) return true
+            const inList = boxSet.has(String(row[2]).trim().toLowerCase())
+            return filterMode === 'include' ? inList : !inList
+        })
+
         const uniqueBoxNumbers = new Set<string>()
         const currentTrackingNumbers = []
-        for (const row of rows.slice(1)) {
+        for (const row of dataRows) {
             uniqueBoxNumbers.add(row[2])
             currentTrackingNumbers.push(row[1])
         }
@@ -147,6 +159,10 @@ export function GenerateArrival() {
 
     const isAwbValid = AWBValidation(awbNumber)
     const showAwbError = awbNumber.length > 0 && !isAwbValid
+
+    const fileNamePrefix = uploadedFile ? uploadedFile.name.slice(0, 12) : ''
+    const showFileNameWarning =
+        !!uploadedFile && awbNumber.length > 0 && fileNamePrefix !== awbNumber
 
     const dropzoneClassName = [
         'dropzone',
@@ -251,6 +267,51 @@ export function GenerateArrival() {
                     )}
                 </div>
 
+                {showFileNameWarning && (
+                    <p className='arrival-warning'>
+                        ⚠ File name ({fileNamePrefix}) doesn't match the AWB number.
+                    </p>
+                )}
+
+                <div className='arrival-field'>
+                    <span className='arrival-field__label'>Box Filter (optional)</span>
+                    <div className='arrival-toggle' role='group'>
+                        <button
+                            type='button'
+                            className={
+                                'arrival-toggle__btn' +
+                                (filterMode === 'include' ? ' arrival-toggle__btn--active' : '')
+                            }
+                            onClick={() => setFilterMode('include')}
+                        >
+                            Include
+                        </button>
+                        <button
+                            type='button'
+                            className={
+                                'arrival-toggle__btn' +
+                                (filterMode === 'exclude' ? ' arrival-toggle__btn--active' : '')
+                            }
+                            onClick={() => setFilterMode('exclude')}
+                        >
+                            Exclude
+                        </button>
+                    </div>
+                    <textarea
+                        className='arrival-textarea'
+                        autoComplete='off'
+                        spellCheck={false}
+                        placeholder='Box numbers, e.g. 12, 15, 23'
+                        value={boxFilterText}
+                        onChange={(event) => setBoxFilterText(event.target.value)}
+                    />
+                    <span className='arrival-field__hint'>
+                        {filterMode === 'include'
+                            ? 'Keep only the listed box numbers. Leave blank for all boxes.'
+                            : 'Drop the listed box numbers. Leave blank for all boxes.'}
+                    </span>
+                </div>
+
                 <button
                     type='submit'
                     className='arrival-submit'
@@ -276,6 +337,8 @@ export function GenerateArrival() {
         setMetadata(null)
         setUploadedFile(null)
         setTrackingNumbers([])
+        setFilterMode('exclude')
+        setBoxFilterText('')
     }
 
     const Generated = (
