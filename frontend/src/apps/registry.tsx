@@ -2,6 +2,7 @@ import type { AppDefinition, AppId } from '../os/types'
 import { Notes } from './Notes'
 import { Calculator } from './Calculator'
 import { GenerateArrival } from './GenerateArrival/GenerateArrival'
+import { BoxIntersect } from './BoxIntersect/BoxIntersect'
 
 // The single place to register apps. Adding an icon = one entry here + a component.
 export const APPS: AppDefinition[] = [
@@ -10,6 +11,9 @@ export const APPS: AppDefinition[] = [
     defaultSize: { width: 280, height: 400 } },
   { id: 'generate_arrival', title: 'Generate Arrival Document', icon: '🛬', component: GenerateArrival,
     defaultSize: { width: 500, height: 490}
+  },
+  { id: 'box_intersect', title: 'Box Intersect', icon: '📦', component: BoxIntersect,
+    defaultSize: { width: 520, height: 560}
   },
 
 ]

@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx'
 
 const TIMEZONE = "ED"
 const DEST_CODE = "'0497"
-const WH_CODE = "'6031"
+const WH_CODE = "6031"
 
 
 
@@ -16,9 +16,17 @@ type BOX_INFORMATION_METADATA = {
     tracking_amount: number;
 }
 
-function AWBValidation(awbNumber: string) {
+type AWBValidationResult = 'valid' | 'bad-format' | 'bad-check-digit'
+
+function AWBValidation(awbNumber: string): AWBValidationResult {
     // 3-digit airline prefix, a dash, then an 8-digit serial (e.g. 123-45678901)
-    return /^\d{3}-\d{8}$/.test(awbNumber)
+    if (!/^\d{3}-\d{8}$/.test(awbNumber)) return 'bad-format'
+
+    // IATA check digit: the serial's 8th digit equals the first 7 digits mod 7
+    const serial = awbNumber.slice(4)
+    if (Number(serial.slice(0, 7)) % 7 !== Number(serial[7])) return 'bad-check-digit'
+
+    return 'valid'
 }
 
 function GenerateNewFile(trackingNumbers: string[], AWBNumber: string) : File {
@@ -48,7 +56,7 @@ function GenerateNewFile(trackingNumbers: string[], AWBNumber: string) : File {
     ]
 
     const rows = CCNs.map((ccn, index) => [
-        "'" + (index + 1), // SLNO
+        (index + 1), // SLNO
         ccn,         // ArrivalCert Control Number
         arrivalDate, // Arrival Date (YYYYMMDDHHMM)
         TIMEZONE,    // Timezone
@@ -157,7 +165,8 @@ export function GenerateArrival() {
         maxFiles: 1,
     })
 
-    const isAwbValid = AWBValidation(awbNumber)
+    const awbValidation = AWBValidation(awbNumber)
+    const isAwbValid = awbValidation === 'valid'
     const showAwbError = awbNumber.length > 0 && !isAwbValid
 
     const fileNamePrefix = uploadedFile ? uploadedFile.name.slice(0, 12) : ''
@@ -225,11 +234,13 @@ export function GenerateArrival() {
                     </div>
                     {showAwbError ? (
                         <span className='arrival-field__error'>
-                            Invalid AWB format — expected 123-45678901
+                            {awbValidation === 'bad-check-digit'
+                                ? "Check digit doesn't match — verify the AWB number."
+                                : 'Invalid AWB format — expected 123-45678901'}
                         </span>
                     ) : (
                         <span className='arrival-field__hint'>
-                            3-digit prefix, dash, then an 8-digit serial.
+                            3-digit prefix, dash, then a 7-digit serial plus its check digit.
                         </span>
                     )}
                 </label>
