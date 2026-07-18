@@ -87,7 +87,13 @@ export function GenerateArrival() {
         const currentTrackingNumbers = []
         for (const row of dataRows) {
             uniqueBoxNumbers.add(row[2])
-            currentTrackingNumbers.push(row[1])
+            
+            if (bypassValidation) {
+                currentTrackingNumbers.push(row[0])
+            }
+            else{
+                currentTrackingNumbers.push(row[1])
+            }   
         }
 
         setMetadata({
