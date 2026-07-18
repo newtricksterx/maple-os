@@ -15,7 +15,6 @@ export const APPS: AppDefinition[] = [
   { id: 'box_intersect', title: 'Box Intersect', icon: '📦', component: BoxIntersect,
     defaultSize: { width: 520, height: 560}
   },
-
 ]
 
 export function getApp(id: AppId): AppDefinition | undefined {

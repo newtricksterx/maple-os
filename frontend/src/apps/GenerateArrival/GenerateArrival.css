@@ -3,7 +3,8 @@
     flex-direction: column;
     gap: 18px;
     padding: 24px;
-    max-width: 440px;
+    width: 100%;
+    min-height: 100%;
     margin: 0 auto;
     animation: arrival-fade 0.25s ease;
 }
@@ -401,4 +402,12 @@
 .arrival-ghost:hover {
     color: var(--text);
     border-color: var(--text-muted);
+}
+
+.bypass-validation {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
 }

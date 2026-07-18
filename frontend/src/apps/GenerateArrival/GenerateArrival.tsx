@@ -10,24 +10,15 @@ const WH_CODE = "6031"
 
 
 
-type BOX_INFORMATION_METADATA = {
+export type BOX_INFORMATION_METADATA = {
     awb: string;
     box_amount: number;
     tracking_amount: number;
 }
 
-type AWBValidationResult = 'valid' | 'bad-format' | 'bad-check-digit'
+type AWBValidationResult = 'valid' | 'bad-format' | 'bad-check-digit' | 'bypass'
 
-function AWBValidation(awbNumber: string): AWBValidationResult {
-    // 3-digit airline prefix, a dash, then an 8-digit serial (e.g. 123-45678901)
-    if (!/^\d{3}-\d{8}$/.test(awbNumber)) return 'bad-format'
 
-    // IATA check digit: the serial's 8th digit equals the first 7 digits mod 7
-    const serial = awbNumber.slice(4)
-    if (Number(serial.slice(0, 7)) % 7 !== Number(serial[7])) return 'bad-check-digit'
-
-    return 'valid'
-}
 
 function GenerateNewFile(trackingNumbers: string[], AWBNumber: string) : File {
     const CCNs = []
@@ -79,6 +70,7 @@ export function GenerateArrival() {
     const [isParsing, setIsParsing] = useState(false)
     const [filterMode, setFilterMode] = useState<'include' | 'exclude'>('exclude')
     const [boxFilterText, setBoxFilterText] = useState('')
+    const [bypassValidation, setBypassValidation] = useState(false)
 
     const parseBoxFilter = (text: string) =>
         new Set(text.split(/[\s,]+/).map((s) => s.trim().toLowerCase()).filter(Boolean))
@@ -106,6 +98,19 @@ export function GenerateArrival() {
 
         setTrackingNumbers(currentTrackingNumbers)
         setIsParsing(false)
+    }
+
+    const AWBValidation = (awbNumber: string): AWBValidationResult => {
+        if (bypassValidation) return 'bypass';
+
+        // 3-digit airline prefix, a dash, then an 8-digit serial (e.g. 123-45678901)
+        if (!/^\d{3}-\d{8}$/.test(awbNumber)) return 'bad-format'
+
+        // IATA check digit: the serial's 8th digit equals the first 7 digits mod 7
+        const serial = awbNumber.slice(4)
+        if (Number(serial.slice(0, 7)) % 7 !== Number(serial[7])) return 'bad-check-digit'
+
+        return 'valid'
     }
 
     const handleGenerate = async () => {
@@ -166,7 +171,7 @@ export function GenerateArrival() {
     })
 
     const awbValidation = AWBValidation(awbNumber)
-    const isAwbValid = awbValidation === 'valid'
+    const isAwbValid = awbValidation === 'valid' || awbValidation === 'bypass'
     const showAwbError = awbNumber.length > 0 && !isAwbValid
 
     const fileNamePrefix = uploadedFile ? uploadedFile.name.slice(0, 12) : ''
@@ -210,6 +215,11 @@ export function GenerateArrival() {
                         Enter the AWB number and upload the box information CSV or XLSX.
                     </p>
                 </header>
+
+                <div className='bypass-validation'>
+                    <input type="checkbox" checked={bypassValidation} onChange={(event) => setBypassValidation(event.target.checked)}></input>
+                    <label>Bypass AWB Validation</label>
+                </div>
 
                 <label className='arrival-field'>
                     <span className='arrival-field__label'>AWB Number</span>

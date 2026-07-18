@@ -43,8 +43,10 @@ export function useWindowManager(): WindowManager {
       0,
       Math.round((window.innerHeight - TASKBAR_HEIGHT - size.height) / 2),
     )
+    
     setWindows((prev) => {
       // Only one window per app: focus (and restore) the existing one if present.
+      /*
       const existing = prev.find((w) => w.appId === appId)
       if (existing) {
         return prev.map((w) =>
@@ -53,6 +55,7 @@ export function useWindowManager(): WindowManager {
             : w,
         )
       }
+      */
       const id = `win-${idCounter.current++}`
       return [
         ...prev,

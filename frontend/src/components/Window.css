@@ -92,9 +92,17 @@
 }
 
 .window__body {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
   overflow: auto;
   padding: 16px;
+}
+
+/* Allow each app to reflow inside the available window dimensions. */
+.window__body > * {
+  min-width: 0;
 }
 
 .window__resize {
