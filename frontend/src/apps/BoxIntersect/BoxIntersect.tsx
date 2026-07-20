@@ -17,7 +17,6 @@ function parseList(text: string): string[] {
 export function BoxIntersect() {
     const [listAText, setListAText] = useState('')
     const [listBText, setListBText] = useState('')
-    const [copied, setCopied] = useState(false)
 
     const { listA, listB, both, onlyA, onlyB } = useMemo(() => {
         const listA = parseList(listAText)
@@ -36,12 +35,6 @@ export function BoxIntersect() {
 
     const hasInput = listA.length > 0 && listB.length > 0
 
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(both.join(', '))
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
-    }
-
     const ResultGroup = (title: string, values: string[], tone: 'match' | 'diff') => (
         <div className={`intersect-group intersect-group--${tone}`}>
             <div className='intersect-group__header'>
@@ -49,7 +42,7 @@ export function BoxIntersect() {
                 <span className='intersect-group__count'>{values.length}</span>
             </div>
             {values.length > 0 ? (
-                <p className='intersect-group__values'>{values.join(', ')}</p>
+                <p className='intersect-group__values'>{values.join(' ')}</p>
             ) : (
                 <p className='intersect-group__empty'>None</p>
             )}
@@ -103,16 +96,7 @@ export function BoxIntersect() {
                 <div className='intersect__results'>
                     {ResultGroup('In both lists', both, 'match')}
                     {ResultGroup('Only in A', onlyA, 'diff')}
-                    {ResultGroup('Only in B', onlyB, 'diff')}
-
-                    <button
-                        type='button'
-                        className='intersect-copy'
-                        onClick={handleCopy}
-                        disabled={both.length === 0}
-                    >
-                        {copied ? 'Copied ✓' : 'Copy intersection'}
-                    </button>
+                    {ResultGroup('Only in B', onlyB, 'diff')}   
                 </div>
             )}
         </div>
