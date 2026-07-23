@@ -7,6 +7,9 @@ import './Window.css'
 const TASKBAR_HEIGHT = 56
 const MIN_WIDTH = 240
 const MIN_HEIGHT = 160
+const RESIZE_DIRECTIONS = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'] as const
+
+type ResizeDirection = (typeof RESIZE_DIRECTIONS)[number]
 
 interface WindowProps {
   win: WindowInstance
@@ -14,10 +17,22 @@ interface WindowProps {
   wm: WindowManager
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
 export function Window({ win, active, wm }: WindowProps) {
   const app = getApp(win.appId)
   const dragRef = useRef<{ dx: number; dy: number } | null>(null)
-  const resizeRef = useRef<{ startX: number; startY: number; w: number; h: number } | null>(null)
+  const resizeRef = useRef<{
+    direction: ResizeDirection
+    startX: number
+    startY: number
+    x: number
+    y: number
+    width: number
+    height: number
+  } | null>(null)
 
   if (!app || win.minimized) return null
   const Body = app.component
@@ -43,16 +58,57 @@ export function Window({ win, active, wm }: WindowProps) {
     window.addEventListener('mouseup', onUp)
   }
 
-  const startResize = (e: React.MouseEvent) => {
+  const startResize = (direction: ResizeDirection) => (e: React.MouseEvent) => {
     e.stopPropagation()
+    e.preventDefault()
     wm.focusWindow(win.id)
-    resizeRef.current = { startX: e.clientX, startY: e.clientY, w: win.width, h: win.height }
+    resizeRef.current = {
+      direction,
+      startX: e.clientX,
+      startY: e.clientY,
+      x: win.x,
+      y: win.y,
+      width: win.width,
+      height: win.height,
+    }
 
     const onMove = (ev: MouseEvent) => {
       if (!resizeRef.current) return
-      const w = Math.max(MIN_WIDTH, resizeRef.current.w + (ev.clientX - resizeRef.current.startX))
-      const h = Math.max(MIN_HEIGHT, resizeRef.current.h + (ev.clientY - resizeRef.current.startY))
-      wm.resizeWindow(win.id, w, h)
+      const current = resizeRef.current
+      const dx = ev.clientX - current.startX
+      const dy = ev.clientY - current.startY
+      const desktopWidth = window.innerWidth
+      const desktopHeight = window.innerHeight - TASKBAR_HEIGHT
+      const movesNorth = current.direction.includes('n')
+      const movesEast = current.direction.includes('e')
+      const movesSouth = current.direction.includes('s')
+      const movesWest = current.direction.includes('w')
+      let x = current.x
+      let y = current.y
+      let width = current.width
+      let height = current.height
+
+      if (movesEast) {
+        width = clamp(current.width + dx, MIN_WIDTH, Math.max(MIN_WIDTH, desktopWidth - current.x))
+      }
+
+      if (movesSouth) {
+        height = clamp(current.height + dy, MIN_HEIGHT, Math.max(MIN_HEIGHT, desktopHeight - current.y))
+      }
+
+      if (movesWest) {
+        const nextX = clamp(current.x + dx, 0, current.x + current.width - MIN_WIDTH)
+        x = nextX
+        width = current.width + current.x - nextX
+      }
+
+      if (movesNorth) {
+        const nextY = clamp(current.y + dy, 0, current.y + current.height - MIN_HEIGHT)
+        y = nextY
+        height = current.height + current.y - nextY
+      }
+
+      wm.resizeWindow(win.id, { x, y, width, height })
     }
     const onUp = () => {
       resizeRef.current = null
@@ -108,9 +164,15 @@ export function Window({ win, active, wm }: WindowProps) {
       <div className="window__body">
         <Body />
       </div>
-      {!win.maximized && (
-        <div className="window__resize" onMouseDown={startResize} />
-      )}
+      {!win.maximized
+        ? RESIZE_DIRECTIONS.map((direction) => (
+          <div
+            key={direction}
+            className={`window__resize-handle window__resize-handle--${direction}`}
+            onMouseDown={startResize(direction)}
+          />
+        ))
+        : null}
     </div>
   )
 }

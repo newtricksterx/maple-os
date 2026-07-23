@@ -1,22 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { isSupabaseConfigured, supabase } from "../../lib/supabase";
+import type { Enums, Tables } from "../../../database.types";
 import "./CCN_Database.css";
 
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycby7QKhpd84oAguie_Uf6U1at2IcGPl9vf8c1VyRXakbPouNHeKFPx-nuuUAHkUblbTN/exec";
-
 const ITEMS_PER_PAGE = 10;
+const MISSING_SUPABASE_CONFIG_MESSAGE =
+    "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to the frontend environment.";
 
-type Status = "Released" | "Exam" | "Rejected" | "Other";
-
-type CCN_Instance = {
-    AWB?: string;
-    CCN?: string;
-    DATE?: string;
-    STATUS?: string;
-    COMMENT?: string;
-};
+type Status = Enums<"ccn_status">;
+type CcnRecord = Tables<"CCN_Registry">;
 
 type CcnPage = {
-    data: CCN_Instance[];
+    data: CcnRecord[];
     page: number;
     totalRows: number;
     totalPages: number;
@@ -59,11 +54,6 @@ function getStatusClassName(status: Status) {
     return `ccn-status--${status.toLowerCase()}`;
 }
 
-function toNumber(value: unknown, fallback: number) {
-    const number = Number(value);
-    return Number.isFinite(number) && number > 0 ? number : fallback;
-}
-
 function normalizeSearchFilters(filters: CcnSearchFilters): CcnSearchFilters {
     return {
         from: filters.from,
@@ -82,78 +72,81 @@ function hasSearchFilters(filters: CcnSearchFilters) {
     return Object.values(filters).some(Boolean);
 }
 
-function addSearchParams(url: URL, filters: CcnSearchFilters) {
+function toUtcDateStart(value: string) {
+    return `${value}T00:00:00.000Z`;
+}
+
+function addUtcDays(value: string, days: number) {
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day + days));
+
+    return date.toISOString().split("T")[0];
+}
+
+function getCcnErrorMessage(error: unknown) {
+    if (error instanceof Error && error.message === MISSING_SUPABASE_CONFIG_MESSAGE) {
+        return MISSING_SUPABASE_CONFIG_MESSAGE;
+    }
+
+    return "Unable to load CCN records right now.";
+}
+
+async function requestCcnData(page: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnPage> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const requestedPage = Math.max(page, 1);
+    const fromRow = (requestedPage - 1) * ITEMS_PER_PAGE;
+    const toRow = fromRow + ITEMS_PER_PAGE - 1;
+    let query = supabase
+        .from("CCN_Registry")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false });
+
     if (filters.from) {
-        url.searchParams.set("from", filters.from);
+        query = query.gte("created_at", toUtcDateStart(filters.from));
     }
 
     if (filters.to) {
-        url.searchParams.set("to", filters.to);
+        query = query.lt("created_at", toUtcDateStart(addUtcDays(filters.to, 1)));
     }
 
     if (filters.awb) {
-        url.searchParams.set("awb", filters.awb);
+        query = query.ilike("awb", `%${filters.awb}%`);
     }
 
     if (filters.ccn) {
-        url.searchParams.set("ccn", filters.ccn);
+        query = query.ilike("ccn", `%${filters.ccn}%`);
     }
 
     if (filters.status) {
-        url.searchParams.set("status", filters.status);
-    }
-}
-
-function parseCcnPageResponse(jsonData: unknown, requestedPage: number): CcnPage {
-    if (Array.isArray(jsonData)) {
-        return {
-            data: jsonData,
-            page: requestedPage,
-            totalRows: jsonData.length,
-            totalPages: 1,
-        };
+        query = query.eq("status", filters.status as Status);
     }
 
-    if (jsonData && typeof jsonData === "object") {
-        const response = jsonData as Record<string, unknown>;
-        const data = Array.isArray(response.data) ? response.data : [];
-        const page = toNumber(response.page, requestedPage);
-        const limit = toNumber(response.limit, ITEMS_PER_PAGE);
-        const totalRows = toNumber(response.totalRows ?? response.total ?? data.length, data.length);
-        const totalPages = toNumber(response.totalPages, Math.max(1, Math.ceil(totalRows / limit)));
+    const { data, error, count } = await query.range(fromRow, toRow);
 
-        return { data, page, totalRows, totalPages };
+    if (error) {
+        throw error;
+    }
+
+    const totalRows = count ?? data.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / ITEMS_PER_PAGE));
+
+    if (totalRows > 0 && requestedPage > totalPages) {
+        return requestCcnData(totalPages, filters);
     }
 
     return {
-        data: [],
-        page: requestedPage,
-        totalRows: 0,
-        totalPages: 1,
+        data,
+        page: Math.min(requestedPage, totalPages),
+        totalRows,
+        totalPages,
     };
 }
 
-async function requestCcnData(page: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS) {
-    const url = new URL(SHEETS_URL);
-    url.searchParams.set("page", String(page));
-    url.searchParams.set("limit", String(ITEMS_PER_PAGE));
-    addSearchParams(url, filters);
-
-    const response = await fetch(url.toString(), {
-        method: "GET",
-        redirect: "follow",
-    });
-
-    if (!response.ok) {
-        throw new Error(`Request failed with ${response.status}`);
-    }
-
-    const jsonData = await response.json();
-    return parseCcnPageResponse(jsonData, page);
-}
-
 export function CCN_Database() {
-    const [data, setData] = useState<CCN_Instance[]>([]);
+    const [data, setData] = useState<CcnRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -173,7 +166,7 @@ export function CCN_Database() {
         const counts = { released: 0, inReview: 0, rejected: 0, other: 0 };
 
         data.forEach((ccn) => {
-            const status = normalizeStatus(ccn.STATUS);
+            const status = normalizeStatus(ccn.status);
 
             if (status === "Released") {
                 counts.released += 1;
@@ -205,7 +198,7 @@ export function CCN_Database() {
             applyCcnPage(ccnPage);
         } catch (error) {
             console.error("Error fetching data:", error);
-            setError("Unable to load CCN records right now.");
+            setError(getCcnErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -255,7 +248,7 @@ export function CCN_Database() {
                 console.error("Error fetching data:", error);
 
                 if (!ignore) {
-                    setError("Unable to load CCN records right now.");
+                    setError(getCcnErrorMessage(error));
                 }
             } finally {
                 if (!ignore) {
@@ -287,7 +280,7 @@ export function CCN_Database() {
                     className="ccn-database__refresh"
                     type="button"
                     onClick={() => void fetchData(currentPage)}
-                    disabled={loading}
+                    disabled={loading || !isSupabaseConfigured}
                 >
                     {loading ? "Refreshing" : "Refresh"}
                 </button>
@@ -388,7 +381,7 @@ export function CCN_Database() {
                 <button
                     className="ccn-database__search-button"
                     type="submit"
-                    disabled={loading || Boolean(dateRangeError)}
+                    disabled={loading || Boolean(dateRangeError) || !isSupabaseConfigured}
                 >
                     {loading ? "Applying" : "Apply"}
                 </button>
@@ -429,19 +422,19 @@ export function CCN_Database() {
                         ) : null}
 
                         {data.map((ccn, index) => {
-                            const status = normalizeStatus(ccn.STATUS);
+                            const status = normalizeStatus(ccn.status);
 
                             return (
-                                <tr key={`${ccn.AWB}-${ccn.CCN}-${index}`}>
-                                    <td>{formatDate(ccn.DATE)}</td>
-                                    <td>{ccn.AWB}</td>
-                                    <td>{ccn.CCN}</td>
+                                <tr key={`${ccn.awb}-${ccn.ccn}-${ccn.created_at}-${index}`}>
+                                    <td>{formatDate(ccn.created_at)}</td>
+                                    <td>{ccn.awb}</td>
+                                    <td>{ccn.ccn}</td>
                                     <td>
                                         <span className={`ccn-status ${getStatusClassName(status)}`}>
                                             {status}
                                         </span>
                                     </td>
-                                    <td>{ccn.COMMENT}</td>
+                                    <td>{ccn.comment}</td>
                                 </tr>
                             );
                         })}

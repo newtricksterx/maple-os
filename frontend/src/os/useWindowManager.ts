@@ -14,7 +14,10 @@ export interface WindowManager {
   minimizeWindow: (id: string) => void
   toggleMaximize: (id: string) => void
   moveWindow: (id: string, x: number, y: number) => void
-  resizeWindow: (id: string, width: number, height: number) => void
+  resizeWindow: (
+    id: string,
+    bounds: Pick<WindowInstance, 'x' | 'y' | 'width' | 'height'>,
+  ) => void
   /** Focus + restore from minimized (used by the taskbar). */
   activateWindow: (id: string) => void
 }
@@ -107,9 +110,12 @@ export function useWindowManager(): WindowManager {
   }, [])
 
   const resizeWindow = useCallback(
-    (id: string, width: number, height: number) => {
+    (
+      id: string,
+      bounds: Pick<WindowInstance, 'x' | 'y' | 'width' | 'height'>,
+    ) => {
       setWindows((prev) =>
-        prev.map((w) => (w.id === id ? { ...w, width, height } : w)),
+        prev.map((w) => (w.id === id ? { ...w, ...bounds } : w)),
       )
     },
     [],

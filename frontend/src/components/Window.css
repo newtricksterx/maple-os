@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  z-index: 1;
+  z-index: 3;
 }
 
 .window__btn {
@@ -107,16 +107,78 @@
   min-width: 0;
 }
 
-.window__resize {
+.window__resize-handle {
   position: absolute;
-  right: 0;
+  z-index: 2;
+  user-select: none;
+  touch-action: none;
+}
+
+.window__resize-handle--n,
+.window__resize-handle--s {
+  left: 12px;
+  right: 12px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.window__resize-handle--n {
+  top: 0;
+}
+
+.window__resize-handle--s {
   bottom: 0;
+}
+
+.window__resize-handle--e,
+.window__resize-handle--w {
+  top: 12px;
+  bottom: 12px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.window__resize-handle--e {
+  right: 0;
+}
+
+.window__resize-handle--w {
+  left: 0;
+}
+
+.window__resize-handle--ne,
+.window__resize-handle--se,
+.window__resize-handle--sw,
+.window__resize-handle--nw {
   width: 14px;
   height: 14px;
+}
+
+.window__resize-handle--ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.window__resize-handle--se {
+  right: 0;
+  bottom: 0;
   cursor: nwse-resize;
 }
 
-.window__resize::after {
+.window__resize-handle--sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.window__resize-handle--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.window__resize-handle--se::after {
   content: '';
   position: absolute;
   right: 3px;
