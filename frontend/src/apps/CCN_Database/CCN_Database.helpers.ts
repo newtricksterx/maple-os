@@ -1,4 +1,4 @@
-import type { CcnPage, CcnSearchFilters, Status } from "./CCN_Database.types";
+import type { CcnPage, CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
 import {EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE, MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
 import { supabase } from "../../lib/supabase";
 export function formatDate(value?: string) {
@@ -110,5 +110,16 @@ export async function requestCcnData(page: number, filters: CcnSearchFilters = E
         page: Math.min(requestedPage, totalPages),
         totalRows,
         totalPages,
+    };
+}
+
+export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
+    return {
+        ccn,
+        awb,
+        comment: "",
+        status: "Exam",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
     };
 }

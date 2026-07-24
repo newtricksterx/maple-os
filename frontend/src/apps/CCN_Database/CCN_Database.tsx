@@ -3,6 +3,7 @@ import { isSupabaseConfigured } from "../../lib/supabase";
 import "./CCN_Database.css";
 import type { CcnPage, CcnRecord, CcnSearchFilters } from "./CCN_Database.types";
 import {
+    CcnToCcnRecord,
     formatDate,
     getCcnErrorMessage,
     getStatusClassName,
@@ -24,6 +25,13 @@ export function CCN_Database() {
     const [totalRows, setTotalRows] = useState(0);
     const [searchDraft, setSearchDraft] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
     const [appliedSearch, setAppliedSearch] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
+
+    const [stagedCcnRecords, setStagedCcnRecords] = useState<CcnRecord[]>([]);
+
+    const [awbValue, setAwbValue] = useState("");
+    const [ccnValue, setCcnValue] = useState("");
+
+
     const dateRangeError = hasInvalidDateRange(searchDraft)
         ? "To date cannot be before From date."
         : null;
@@ -91,6 +99,79 @@ export function CCN_Database() {
         }));
     }, []);
 
+    const handleStagedCcnChange = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        // 1. Extract data using FormData
+        const formData = new FormData(event.currentTarget);
+        const rawCcn = formData.get("ccn") as string || "";
+        const rawAwb = formData.get("awb") as string || "";
+
+        // 2. Process the strings
+        const cleanCcnList = rawCcn.split(/\s+/).filter((ccn) => ccn !== "");
+        const cleanAwbValue = rawAwb.trim();
+
+        // 3. Update state
+        setStagedCcnRecords(cleanCcnList.map((ccn) => CcnToCcnRecord(ccn, cleanAwbValue)));
+
+    }, []);
+
+    const addCCNForm = () => {
+        return (
+            <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange}>
+                <input
+                    type="text"
+                    id="awb"
+                    name="awb"
+                    className="ccn-database-input"
+                    placeholder="Enter AWB..."
+                    value={awbValue}
+                    onChange={(e) => setAwbValue(e.target.value)}
+                />
+                <label className="ccn-database-add">
+                    <textarea
+                        placeholder="Enter CCNs..."
+                        className="ccn-database-textarea"
+                        name="ccn"
+                        value={ccnValue}
+                        onChange={(e) => setCcnValue(e.target.value)}
+                    />
+                </label>
+                <button
+                    className="ccn-database__search-button"
+                    type="submit"
+                    disabled={loading || awbValue.length === 0 || ccnValue.length === 0}
+                >
+                    Stage CCNs
+                </button>
+            </form>
+        );
+    };
+
+    const stagedCcnList = () => {
+        return (
+            <div className="ccn-database__staged">
+                <h3>Staged CCNs for AWB: {stagedCcnRecords[0]?.awb}</h3>
+                <ul>
+                    {stagedCcnRecords.map((record, index) => (
+                        <li key={`${record.ccn}-${index}`}>{record.ccn} - {record.awb} - {record.status} - {record.comment} - {record.created_at}</li>
+                    ))}
+                </ul>
+                <button
+                    className="ccn-database__reset-button"
+                    type="button"
+                    onClick={() => {setStagedCcnRecords([]); setAwbValue(""); setCcnValue("");}}
+                >
+                    Reset Form
+                </button>
+            </div>
+        );
+    }
+
+    const handleResetCcnForm = () => {
+        setStagedCcnRecords([]);
+    }
+
     const applySearch = useCallback(() => {
         const nextSearch = normalizeSearchFilters(searchDraft);
 
@@ -154,7 +235,7 @@ export function CCN_Database() {
                                 type="button"
                                 disabled={loading || !isSupabaseConfigured}
                             >
-                                Add CCN Record
+                                Add CCN Records
                             </button>
                         </Dialog.Trigger>
                         <Dialog.Overlay className="ccn-dialog__overlay" />
@@ -162,7 +243,7 @@ export function CCN_Database() {
                             <div className="ccn-dialog__header">
                                 <div className="ccn-dialog__heading">
                                     <Dialog.Title className="ccn-dialog__title">
-                                        Add CCN Record
+                                        Add CCN Records
                                     </Dialog.Title>
                                 </div>
                                 <Dialog.Close asChild>
@@ -177,20 +258,7 @@ export function CCN_Database() {
                             </div>
                             
                             <div className="ccn-dialog__body">
-                                <label className="ccn-database-add">
-                                    <textarea
-                                        placeholder="Enter CCNs..."
-                                        className="ccn-database-textarea"
-                                    />
-                                </label>
-
-                                <button
-                                    className="ccn-database__search-button"
-                                    type="submit"
-                                    disabled={loading}
-                                >
-                                    Add CCNs
-                                </button>
+                                { stagedCcnRecords.length > 0 ? stagedCcnList() : addCCNForm() }
                             </div>
 
 

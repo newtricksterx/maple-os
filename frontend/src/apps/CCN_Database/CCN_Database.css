@@ -123,7 +123,7 @@
 
 .ccn-dialog__header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 14px;
     padding: 18px 18px 14px;
@@ -496,12 +496,27 @@
 
 
 .ccn-database-add {
+    margin-top: 10px;
+    margin-bottom: 10px;
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: 6px;
     min-width: 0;
+}
+
+.ccn-database-input {
+    width: 100%;
+    min-height: 36px;
     padding: 8px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 @media (max-width: 780px) {
