@@ -56,7 +56,37 @@ export function getCcnErrorMessage(error: unknown) {
         return MISSING_SUPABASE_CONFIG_MESSAGE;
     }
 
+    if (typeof error === "string" && error.trim()) {
+        return error;
+    }
+
+    if (typeof error === "object" && error !== null) {
+        const code = (error as { code?: string }).code;
+        if (code && typeof code === "string" && code.trim()) {
+            
+            if (code === "23505") {
+                return " already exists.";
+            }
+            else {
+                return " has an unknown error. Please contact support.";
+            }
+
+        }
+    }
+
     return "Unable to load CCN records right now.";
+}
+
+export async function addCcnRecord(record: CcnRecord): Promise<void> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const { error } = await supabase.from("CCN_Registry").insert(record);
+    
+    if (error) {
+        throw error;
+    }
 }
 
 export async function requestCcnData(page: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnPage> {
@@ -119,7 +149,7 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
         awb,
         comment: "",
         status: "Exam",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: formatDate(new Date().toISOString()),
+        updated_at: formatDate(new Date().toISOString()),
     };
 }

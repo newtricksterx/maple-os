@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured } from "../../lib/supabase";
 import "./CCN_Database.css";
-import type { CcnPage, CcnRecord, CcnSearchFilters } from "./CCN_Database.types";
+import type { CcnPage, CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
 import {
+    addCcnRecord,
     CcnToCcnRecord,
     formatDate,
     getCcnErrorMessage,
@@ -30,6 +31,8 @@ export function CCN_Database() {
 
     const [awbValue, setAwbValue] = useState("");
     const [ccnValue, setCcnValue] = useState("");
+
+    const [addErrorMessage, setAddErrorMessage] = useState<string | null>(null);
 
 
     const dateRangeError = hasInvalidDateRange(searchDraft)
@@ -116,6 +119,57 @@ export function CCN_Database() {
 
     }, []);
 
+    const handleAddToDatabase = useCallback(async () => {
+        if (stagedCcnRecords.length === 0) {
+            return;
+        }
+
+        setAddErrorMessage(null);
+
+        for (const record of stagedCcnRecords) {
+            try {
+                await addCcnRecord(record);
+            } catch (error) {
+                console.error(`Error adding CCN record ${record.ccn}:`, error);
+                setAddErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
+                return;
+            }
+        }
+    }, [stagedCcnRecords]);
+
+    const handleCommentChange = useCallback((ccn: string, comment: string) => {
+        setStagedCcnRecords((currentRecords) =>
+            currentRecords.map((record) => {
+                if (record.ccn === ccn) {
+                    return { ...record, comment };
+                }
+                return record;
+            })
+        );
+    }, []);
+
+    const handleStatusChange = useCallback((ccn: string, status: Status) => {
+        setStagedCcnRecords((currentRecords) =>
+            currentRecords.map((record) => {
+                if (record.ccn === ccn) {
+                    return { ...record, status };
+                }
+                return record;
+            })
+        );
+    }, []);
+    
+    const handleDateChange = useCallback((ccn: string, date: string) => {
+        setStagedCcnRecords((currentRecords) =>
+            currentRecords.map((record) => {
+                if (record.ccn === ccn) {
+                    return { ...record, created_at: date, updated_at: date };
+                }
+                return record;
+            })
+        );
+    }, []);
+
     const addCCNForm = () => {
         return (
             <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange}>
@@ -151,19 +205,78 @@ export function CCN_Database() {
     const stagedCcnList = () => {
         return (
             <div className="ccn-database__staged">
-                <h3>Staged CCNs for AWB: {stagedCcnRecords[0]?.awb}</h3>
-                <ul>
-                    {stagedCcnRecords.map((record, index) => (
-                        <li key={`${record.ccn}-${index}`}>{record.ccn} - {record.awb} - {record.status} - {record.comment} - {record.created_at}</li>
-                    ))}
-                </ul>
-                <button
-                    className="ccn-database__reset-button"
-                    type="button"
-                    onClick={() => {setStagedCcnRecords([]); setAwbValue(""); setCcnValue("");}}
-                >
-                    Reset Form
-                </button>
+                <div className="ccn-database__staged-header">
+                    <h3>Staged CCNs<span className="ccn-database__staged-header-subtitle"> - changes are saved automatically</span></h3>
+                    <p>AWB: {stagedCcnRecords[0]?.awb || "—"}</p>
+                </div>
+
+                <div className="ccn-table-shell ccn-database__staged-table">
+                    <table className="ccn-table" aria-label="Staged CCN records">
+                        <thead>
+                            <tr>
+                                <th>CCN</th>
+                                <th>AWB</th>
+                                <th>Status</th>
+                                <th>Comment</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {stagedCcnRecords.map((record, index) => (
+                                <tr key={`${record.ccn}-${index}`}>
+                                    <td>{record.ccn}</td>
+                                    <td>{record.awb}</td>
+                                    <td>
+                                        <select value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
+                                            <option value="Released">Released</option>
+                                            <option value="Exam">Exam</option>
+                                            <option value="Rejected">Rejected</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Enter comment..." 
+                                            value={record.comment || ""} 
+                                            onChange={(e) => handleCommentChange(record.ccn, e.target.value)}
+                                        />
+                                    </td>
+                                    <td>
+                                        <input 
+                                            type="date" 
+                                            value={formatDate(record.created_at)} 
+                                            onChange={(e) => handleDateChange(record.ccn, formatDate(e.target.value))} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <footer className="ccn-database-staged-footer">
+
+                    <button
+                        className="ccn-database__reset-button"
+                        type="button"
+                        onClick={() => {setStagedCcnRecords([]); setAwbValue(""); setCcnValue(""); setAddErrorMessage(null);}}
+                    >
+                        Reset Form
+                    </button>
+
+                    {addErrorMessage ? (
+                        <p className="ccn-database__notice ccn-database__notice--error">{addErrorMessage}</p>
+                    ) : null}
+
+                    <button
+                        className="ccn-database__add-button"
+                        type="button"
+                        onClick={handleAddToDatabase}
+                    >
+                        Add to Database
+                    </button>
+
+                </footer>
             </div>
         );
     }
