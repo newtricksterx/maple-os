@@ -168,10 +168,6 @@ export function CCN_Database() {
         );
     }
 
-    const handleResetCcnForm = () => {
-        setStagedCcnRecords([]);
-    }
-
     const applySearch = useCallback(() => {
         const nextSearch = normalizeSearchFilters(searchDraft);
 
