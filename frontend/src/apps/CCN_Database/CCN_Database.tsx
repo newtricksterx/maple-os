@@ -191,13 +191,23 @@ export function CCN_Database() {
                         onChange={(e) => setCcnValue(e.target.value)}
                     />
                 </label>
-                <button
-                    className="ccn-database__search-button"
-                    type="submit"
-                    disabled={loading || awbValue.length === 0 || ccnValue.length === 0}
-                >
-                    Stage CCNs
-                </button>
+                <footer className="ccn-database__add-form-footer">
+                    <button
+                        className="ccn-database__reset-button"
+                        type="button"
+                        onClick={() => {setStagedCcnRecords([]); setAwbValue(""); setCcnValue(""); setAddErrorMessage(null);}}
+                    >
+                        Reset Form
+                    </button>
+                    <button
+                        className="ccn-database__search-button"
+                        type="submit"
+                        disabled={loading || awbValue.length === 0 || ccnValue.length === 0}
+                    >
+                        Stage CCNs
+                    </button>
+                </footer>
+
             </form>
         );
     };
@@ -344,6 +354,40 @@ export function CCN_Database() {
                                 type="button"
                                 disabled={loading || !isSupabaseConfigured}
                             >
+                                Update CCN Records
+                            </button>
+                        </Dialog.Trigger>
+                        <Dialog.Overlay className="ccn-dialog__overlay" />
+                        <Dialog.Content className="ccn-dialog">
+                            <div className="ccn-dialog__header">
+                                <div className="ccn-dialog__heading">
+                                    <Dialog.Title className="ccn-dialog__title">
+                                        Update CCN Records
+                                    </Dialog.Title>
+                                </div>
+                                <Dialog.Close asChild>
+                                    <button
+                                        className="ccn-dialog__close"
+                                        type="button"
+                                        aria-label="Close dialog"
+                                    >
+                                        X
+                                    </button>
+                                </Dialog.Close>
+                            </div>
+                            
+                            <div className="ccn-dialog__body">
+                                { stagedCcnRecords.length > 0 ? stagedCcnList() : addCCNForm() }
+                            </div>
+                        </Dialog.Content>
+                    </Dialog.Root>
+                    <Dialog.Root>
+                        <Dialog.Trigger asChild>
+                            <button
+                                className="ccn-database__add"
+                                type="button"
+                                disabled={loading || !isSupabaseConfigured}
+                            >
                                 Add CCN Records
                             </button>
                         </Dialog.Trigger>
@@ -369,8 +413,6 @@ export function CCN_Database() {
                             <div className="ccn-dialog__body">
                                 { stagedCcnRecords.length > 0 ? stagedCcnList() : addCCNForm() }
                             </div>
-
-
                         </Dialog.Content>
                     </Dialog.Root>
                 </div>

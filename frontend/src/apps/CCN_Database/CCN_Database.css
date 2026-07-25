@@ -10,6 +10,13 @@
     animation: ccn-fade 0.25s ease;
 }
 
+.ccn-database__add-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
 .ccn-database__staged-header-subtitle {
     font-size: 12px;
     font-weight: 400;
