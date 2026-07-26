@@ -16,6 +16,7 @@ export type CcnSearchFilters = {
     awb: string;
     ccn: string;
     status: string;
+    released_on: string;
 };
 
 export type OperationType = "add" | "update"

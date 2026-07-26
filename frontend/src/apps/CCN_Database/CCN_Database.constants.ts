@@ -10,4 +10,5 @@ export const EMPTY_SEARCH_FILTERS: CcnSearchFilters = {
     awb: "",
     ccn: "",
     status: "",
+    released_on: "",
 };

@@ -29,6 +29,7 @@ export function normalizeSearchFilters(filters: CcnSearchFilters): CcnSearchFilt
         awb: filters.awb.trim(),
         ccn: filters.ccn.trim(),
         status: filters.status,
+        released_on: filters.released_on.trim(),
     };
 }
 
@@ -82,8 +83,37 @@ export async function addCcnRecord(record: CcnRecord): Promise<void> {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
+    if (record.status == "Released"){
+        record.released_on = formatDate(new Date().toISOString())
+    }
+
     const { error } = await supabase.from("CCN_Registry").insert(record);
     
+    if (error) {
+        throw error;
+    }
+}
+
+export async function updateCcnRecord(record: CcnRecord) : Promise<void> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const releasedOn = record.status === "Released"
+        ? formatDate(new Date().toISOString())
+        : null;
+
+    const { error } = await supabase
+        .from("CCN_Registry")
+        .update({
+            status: record.status,
+            updated_at: formatDate(new Date().toISOString()),
+            comment: record.comment,
+            released_on: releasedOn,
+        })
+        .eq("ccn", record.ccn)
+        .eq("awb", record.awb);
+
     if (error) {
         throw error;
     }
@@ -104,6 +134,24 @@ export async function isAwbExist(awb: string): Promise<boolean> {
     }
 
     return (count ?? 0) > 0;
+}
+
+export async function getCCNs(ccns: string[], awb: string): Promise<CcnRecord[] | null> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const { data, error } = await supabase
+        .from("CCN_Registry")
+        .select('*', { count: 'exact' })
+        .in('ccn', ccns)
+        .eq('awb', awb);
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
 }
 
 export async function requestCcnData(page: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnPage> {
@@ -128,15 +176,19 @@ export async function requestCcnData(page: number, filters: CcnSearchFilters = E
     }
 
     if (filters.awb) {
-        query = query.ilike("awb", `%${filters.awb}%`);
+        query = query.eq("awb", filters.awb);
     }
 
     if (filters.ccn) {
-        query = query.ilike("ccn", `%${filters.ccn}%`);
+        query = query.eq("ccn", filters.ccn);
     }
 
     if (filters.status) {
         query = query.eq("status", filters.status as Status);
+    }
+
+    if (filters.released_on) {
+        query = query.eq("released_on", filters.released_on);
     }
 
     const { data, error, count } = await query.range(fromRow, toRow);
@@ -165,6 +217,7 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
         ccn,
         awb,
         comment: "",
+        released_on: null,
         status: "Exam",
         created_at: formatDate(new Date().toISOString()),
         updated_at: formatDate(new Date().toISOString()),

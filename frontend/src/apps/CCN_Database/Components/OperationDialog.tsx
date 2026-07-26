@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog } from "radix-ui"
 import type { CcnRecord, OperationType } from "../CCN_Database.types";
 
@@ -8,18 +9,32 @@ interface OperationDialogProps {
     listElement: React.ReactNode;
     formElement: React.ReactNode;
     setOperationType: (op: OperationType) => void;
+    handleResetForm: () => void;
 
 }
 
-export const OperationDialog = ({ title, disabled, stagedCcnRecords, listElement, formElement, setOperationType } : OperationDialogProps) => {
+export const OperationDialog = ({ title, disabled, stagedCcnRecords, listElement, formElement, setOperationType, handleResetForm } : OperationDialogProps) => {
+    const [open, setOpen] = useState(false);
+
+    const handleOpenChange = (nextOpen: boolean) => {
+        setOpen(nextOpen);
+
+        if (!nextOpen) {
+            handleResetForm();
+        }
+    };
+
     return (
-        <Dialog.Root>
+        <Dialog.Root open={open} onOpenChange={handleOpenChange}>
             <Dialog.Trigger asChild>
                 <button
                     className="ccn-database__add"
                     type="button"
                     disabled={disabled}
-                    onClick={() => {setOperationType("update")}}
+                    onClick={() => {
+                        setOperationType("update");
+                        setOpen(true);
+                    }}
                 >
                     {title}
                 </button>
@@ -37,6 +52,7 @@ export const OperationDialog = ({ title, disabled, stagedCcnRecords, listElement
                             className="ccn-dialog__close"
                             type="button"
                             aria-label="Close dialog"
+                            onClick={handleResetForm}
                         >
                             X
                         </button>

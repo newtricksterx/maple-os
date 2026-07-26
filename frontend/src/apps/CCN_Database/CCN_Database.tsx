@@ -11,13 +11,16 @@ import {
     hasInvalidDateRange,
     hasSearchFilters,
     isAwbExist,
+    getCCNs,
     normalizeSearchFilters,
     normalizeStatus,
     requestCcnData,
+    updateCcnRecord,
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS } from "./CCN_Database.constants";
 import { BaseCCNForm } from "./Components/BaseCCNForm";
 import { OperationDialog } from "./Components/OperationDialog";
+import { BaseStagedCCNsList } from "./Components/BaseStagedCCNsList";
 
 export function CCN_Database() {
     const [data, setData] = useState<CcnRecord[]>([]);
@@ -35,7 +38,7 @@ export function CCN_Database() {
     const [ccnValue, setCcnValue] = useState("");
     const [operationType, setOperationType] = useState<OperationType | null>()
 
-    const [addErrorMessage, setAddErrorMessage] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [addSuccessMessage, setAddSuccessMessage] = useState<string | null>(null);
 
 
@@ -118,15 +121,40 @@ export function CCN_Database() {
         const cleanCcnList = rawCcn.split(/\s+/).filter((ccn) => ccn !== "");
         const cleanAwbValue = rawAwb.trim();
 
-        // check if awb exists in supabase
         if (operationType == "update") {
-            // do stuff
-            const exist = await isAwbExist(cleanAwbValue)
+            // check if awb and ccns exists in supabase
+            setLoading(true);
 
-            if (!exist){
+            const awbExist = await isAwbExist(cleanAwbValue)
+
+            if (!awbExist){
                 console.log("awb does not exist")
-                return 
+                setErrorMessage(`AWB - ${cleanAwbValue} does not exist in the database. Please enter a valid AWB.`)
+                setLoading(false);
+                return;
             }
+
+            const ccns = await getCCNs(cleanCcnList, cleanAwbValue)
+
+            if (!ccns || ccns.length === 0){
+                console.log("ccns do not exist")
+                setErrorMessage(`One or more CCNs do not exist in the database for AWB - ${cleanAwbValue}. Please enter valid CCNs.`)
+                setLoading(false);
+                return;
+            }
+
+            setLoading(false);
+
+            setStagedCcnRecords(
+                ccns.map((record) => ({
+                    ...record,
+                    awb: cleanAwbValue,
+                    status: normalizeStatus("Released"),
+                    comment: record.comment ?? "",
+                }))
+            );
+
+            return;
         }
 
         // 3. Update state
@@ -171,17 +199,33 @@ export function CCN_Database() {
         setStagedCcnRecords([]); 
         setAwbValue(""); 
         setCcnValue(""); 
-        setAddErrorMessage(null);
+        setErrorMessage(null);
         setAddSuccessMessage(null);
     }, [])
 
-    const handleAddToDatabase = useCallback(async () => {
+    const handleDatabaseOperation = useCallback(async () => {
         if (stagedCcnRecords.length === 0) {
             return;
         }
 
-        setAddErrorMessage(null);
+        setErrorMessage(null);
         setAddSuccessMessage(null);
+
+        if (operationType === "update") {
+            for (const record of stagedCcnRecords) {
+                try {
+                    await updateCcnRecord(record);
+                } catch (error) {
+                    console.error(`Error updating CCN record ${record.ccn}:`, error);
+                    setAddSuccessMessage(null);
+                    setErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
+                    return;
+                }
+            }
+
+            setAddSuccessMessage(`Successfully updated ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} in the database.`);
+            return;
+        }
 
         for (const record of stagedCcnRecords) {
             try {
@@ -189,7 +233,7 @@ export function CCN_Database() {
             } catch (error) {
                 console.error(`Error adding CCN record ${record.ccn}:`, error);
                 setAddSuccessMessage(null);
-                setAddErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
+                setErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
                 return;
             }
         }
@@ -197,6 +241,7 @@ export function CCN_Database() {
         setAddSuccessMessage(`Successfully added ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} to the database.`);
 
     }, [stagedCcnRecords]);
+
 
     const applySearch = useCallback(() => {
         const nextSearch = normalizeSearchFilters(searchDraft);
@@ -210,6 +255,13 @@ export function CCN_Database() {
         setData([]);
         void fetchData(1, nextSearch);
     }, [fetchData, searchDraft]);
+
+    const clearSearch = useCallback(() => {
+        const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);
+
+        setSearchDraft(clearedSearch);
+        setAppliedSearch(clearedSearch);
+    }, []);
 
     useEffect(() => {
         let ignore = false;
@@ -241,87 +293,6 @@ export function CCN_Database() {
         };
     }, [applyCcnPage]);
 
-    const stagedCcnList = () => {
-        return (
-            <div className="ccn-database__staged">
-                <div className="ccn-database__staged-header">
-                    <h3>Staged CCNs<span className="ccn-database__staged-header-subtitle"> - changes are saved automatically</span></h3>
-                    <p>AWB: {stagedCcnRecords[0]?.awb || "—"}</p>
-                </div>
-
-                <div className="ccn-table-shell ccn-database__staged-table">
-                    <table className="ccn-table" aria-label="Staged CCN records">
-                        <thead>
-                            <tr>
-                                <th>CCN</th>
-                                <th>AWB</th>
-                                <th>Status</th>
-                                <th>Comment</th>
-                                <th>Created</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {stagedCcnRecords.map((record, index) => (
-                                <tr key={`${record.ccn}-${index}`}>
-                                    <td>{record.ccn}</td>
-                                    <td>{record.awb}</td>
-                                    <td>
-                                        <select value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
-                                            <option value="Released">Released</option>
-                                            <option value="Exam">Exam</option>
-                                            <option value="Rejected">Rejected</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Enter comment..." 
-                                            value={record.comment || ""} 
-                                            onChange={(e) => handleCommentChange(record.ccn, e.target.value)}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input 
-                                            type="date" 
-                                            value={formatDate(record.created_at)} 
-                                            onChange={(e) => handleDateChange(record.ccn, formatDate(e.target.value))} />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                <footer className="ccn-database-staged-footer">
-
-                    <button
-                        className="ccn-database__reset-button"
-                        type="button"
-                        onClick={handleResetForm}
-                    >
-                        Reset Form
-                    </button>
-
-                    {addErrorMessage ? (
-                        <p className="ccn-database__notice ccn-database__notice--error">{addErrorMessage}</p>
-                    ) : addSuccessMessage ? (
-                        <p className="ccn-database__notice ccn-database__notice--success">{addSuccessMessage}</p>
-                    ) : null}
-
-                    <button
-                        className="ccn-database__add-button"
-                        type="button"
-                        onClick={handleAddToDatabase}
-                    >
-                        Add to Database
-                    </button>
-
-                </footer>
-            </div>
-        );
-    }
-
     return (
         <section className="ccn-database">
             <header className="ccn-database__header">
@@ -339,7 +310,18 @@ export function CCN_Database() {
                         title="Update CCN Records"
                         disabled={loading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
-                        listElement={stagedCcnList()}
+                        listElement={<BaseStagedCCNsList
+                                            stagedCcnRecords={stagedCcnRecords}
+                                            handleStatusChange={handleStatusChange}
+                                            handleCommentChange={handleCommentChange}
+                                            handleDateChange={handleDateChange}
+                                            handleResetForm={handleResetForm}
+                                            handleSubmit={handleDatabaseOperation}
+                                            submitButtonText="Update to Database"
+                                            operationType="update"
+                                            errorMessage={errorMessage}
+                                            successMessage={addSuccessMessage}
+                                        />}
                         formElement={<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
@@ -347,8 +329,11 @@ export function CCN_Database() {
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
-                                        handleResetForm={handleResetForm}/>}
+                                        handleResetForm={handleResetForm}
+                                        errorMessage={errorMessage}
+                                    />}
                         setOperationType={() => {setOperationType("update")}}
+                        handleResetForm={handleResetForm}
                     />
 
 
@@ -356,7 +341,18 @@ export function CCN_Database() {
                         title="Add CCN Records"
                         disabled={loading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
-                        listElement={stagedCcnList()}
+                        listElement={<BaseStagedCCNsList
+                                            stagedCcnRecords={stagedCcnRecords}
+                                            handleStatusChange={handleStatusChange}
+                                            handleCommentChange={handleCommentChange}
+                                            handleDateChange={handleDateChange}
+                                            handleResetForm={handleResetForm}
+                                            handleSubmit={handleDatabaseOperation}
+                                            submitButtonText="Add to Database"
+                                            operationType="add"
+                                            errorMessage={errorMessage}
+                                            successMessage={addSuccessMessage}
+                                        />}
                         formElement={<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
@@ -366,6 +362,7 @@ export function CCN_Database() {
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}/>}
                         setOperationType={() => {setOperationType("add")}}
+                        handleResetForm={handleResetForm}
                     />
                 </div>
             </header>
@@ -396,79 +393,118 @@ export function CCN_Database() {
                     applySearch();
                 }}
             >
-                <div className="ccn-database__search-field">
-                    <label htmlFor="ccn-search-date-from" className="ccn-database__search-label">From:</label>
-                    <input
-                        type="date"
-                        id="ccn-search-date-from"
-                        className="ccn-database__search-input"
-                        value={searchDraft.from}
-                        max={searchDraft.to || undefined}
-                        aria-invalid={Boolean(dateRangeError)}
-                        aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
-                        onChange={(event) => updateSearchDraft("from", event.target.value)}
-                    />
+                <div className="ccn-database__search-header">
+                    <div>
+                        <h2 className="ccn-database__search-title">Search filters</h2>
+                        <p className="ccn-database__search-description">Refine records by date, AWB, CCN, or release state.</p>
+                    </div>
+
+                    <div className="ccn-database__search-toolbar">
+                        {hasAppliedSearch ? (
+                            <span className="ccn-database__search-active">Filters applied</span>
+                        ) : null}
+                        <button
+                            className="ccn-database__search-clear"
+                            type="button"
+                            onClick={clearSearch}
+                        >
+                            Clear
+                        </button>
+                    </div>
                 </div>
 
-                <div className="ccn-database__search-field">
-                    <label htmlFor="ccn-search-date-to" className="ccn-database__search-label">To:</label>
-                    <input
-                        type="date"
-                        id="ccn-search-date-to"
-                        className="ccn-database__search-input"
-                        value={searchDraft.to}
-                        min={searchDraft.from || undefined}
-                        aria-invalid={Boolean(dateRangeError)}
-                        aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
-                        onChange={(event) => updateSearchDraft("to", event.target.value)}
-                    />
+                <div className="ccn-database__search-controls">
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-date-from" className="ccn-database__search-label">From</label>
+                        <input
+                            type="date"
+                            id="ccn-search-date-from"
+                            className="ccn-database__search-input"
+                            value={searchDraft.from}
+                            max={searchDraft.to || undefined}
+                            aria-invalid={Boolean(dateRangeError)}
+                            aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
+                            onChange={(event) => updateSearchDraft("from", event.target.value)}
+                        />
+                    </div>
+
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-date-to" className="ccn-database__search-label">To</label>
+                        <input
+                            type="date"
+                            id="ccn-search-date-to"
+                            className="ccn-database__search-input"
+                            value={searchDraft.to}
+                            min={searchDraft.from || undefined}
+                            aria-invalid={Boolean(dateRangeError)}
+                            aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
+                            onChange={(event) => updateSearchDraft("to", event.target.value)}
+                        />
+                    </div>
+
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-awb" className="ccn-database__search-label">AWB</label>
+                        <input
+                            type="text"
+                            id="ccn-search-awb"
+                            className="ccn-database__search-input"
+                            value={searchDraft.awb}
+                            placeholder="Search AWB"
+                            onChange={(event) => updateSearchDraft("awb", event.target.value)}
+                        />
+                    </div>
+
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-ccn" className="ccn-database__search-label">CCN</label>
+                        <input
+                            type="text"
+                            id="ccn-search-ccn"
+                            className="ccn-database__search-input"
+                            value={searchDraft.ccn}
+                            placeholder="Search CCN"
+                            onChange={(event) => updateSearchDraft("ccn", event.target.value)}
+                        />
+                    </div>
+
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-status" className="ccn-database__search-label">Status</label>
+                        <select
+                            id="ccn-search-status"
+                            className="ccn-database__search-input"
+                            value={searchDraft.status}
+                            onChange={(event) => updateSearchDraft("status", event.target.value)}
+                        >
+                            <option value="">All</option>
+                            <option value="Released">Released</option>
+                            <option value="Exam">Exam</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-released_on" className="ccn-database__search-label">Released On</label>
+                        <input
+                            type="date"
+                            id="ccn-search-released_on"
+                            className="ccn-database__search-input"
+                            value={searchDraft.released_on}
+                            onChange={(event) => updateSearchDraft("released_on", event.target.value)}
+                        />
+                    </div>
                 </div>
 
-                <div className="ccn-database__search-field">
-                    <label htmlFor="ccn-search-awb" className="ccn-database__search-label">AWB:</label>
-                    <input
-                        type="text"
-                        id="ccn-search-awb"
-                        className="ccn-database__search-input"
-                        value={searchDraft.awb}
-                        onChange={(event) => updateSearchDraft("awb", event.target.value)}
-                    />
-                </div>
-
-                <div className="ccn-database__search-field">
-                    <label htmlFor="ccn-search-ccn" className="ccn-database__search-label">CCN:</label>
-                    <input
-                        type="text"
-                        id="ccn-search-ccn"
-                        className="ccn-database__search-input"
-                        value={searchDraft.ccn}
-                        onChange={(event) => updateSearchDraft("ccn", event.target.value)}
-                    />
-                </div>
-
-                <div className="ccn-database__search-field">
-                    <label htmlFor="ccn-search-status" className="ccn-database__search-label">Status:</label>
-                    <select
-                        id="ccn-search-status"
-                        className="ccn-database__search-input"
-                        value={searchDraft.status}
-                        onChange={(event) => updateSearchDraft("status", event.target.value)}
+                <div className="ccn-database__search-footer">
+                    <button
+                        className="ccn-database__search-button"
+                        type="submit"
+                        disabled={loading || Boolean(dateRangeError) || !isSupabaseConfigured}
                     >
-                        <option value="">All</option>
-                        <option value="Released">Released</option>
-                        <option value="Exam">Exam</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
+                        Search
+                    </button>
 
-                <button
-                    className="ccn-database__search-button"
-                    type="submit"
-                    disabled={loading || Boolean(dateRangeError) || !isSupabaseConfigured}
-                >
-                    {loading ? "Applying" : "Apply"}
-                </button>
+                    <p className="ccn-database__search-hint">Use the date range to narrow large result sets quickly.</p>
+                </div>
 
                 {dateRangeError ? (
                     <p
@@ -488,20 +524,21 @@ export function CCN_Database() {
                             <th>CCN</th>
                             <th>AWB</th>
                             <th>Status</th>
-                            <th>Comment</th>
                             <th>Created At</th>
+                            <th>Released On</th>
+                            <th>Comment</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && data.length === 0 ? (
                             <tr>
-                                <td className="ccn-table__empty" colSpan={5}>Loading CCN records...</td>
+                                <td className="ccn-table__empty" colSpan={6}>Loading CCN records...</td>
                             </tr>
                         ) : null}
 
                         {!loading && data.length === 0 ? (
                             <tr>
-                                <td className="ccn-table__empty" colSpan={5}>{emptyTableMessage}</td>
+                                <td className="ccn-table__empty" colSpan={6}>{emptyTableMessage}</td>
                             </tr>
                         ) : null}
 
@@ -517,8 +554,9 @@ export function CCN_Database() {
                                             {status}
                                         </span>
                                     </td>
-                                    <td>{ccn.comment}</td>
                                     <td>{formatDate(ccn.created_at)}</td>
+                                    <td>{formatDate(ccn.released_on ?? undefined)}</td>
+                                    <td>{ccn.comment}</td>
                                 </tr>
                             );
                         })}
