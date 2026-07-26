@@ -89,6 +89,23 @@ export async function addCcnRecord(record: CcnRecord): Promise<void> {
     }
 }
 
+export async function isAwbExist(awb: string): Promise<boolean> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const { count, error } = await supabase
+        .from("CCN_Registry")
+        .select('*', { count: 'exact', head: true })
+        .eq('awb', awb);
+
+    if (error) {
+        throw error;
+    }
+
+    return (count ?? 0) > 0;
+}
+
 export async function requestCcnData(page: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnPage> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);

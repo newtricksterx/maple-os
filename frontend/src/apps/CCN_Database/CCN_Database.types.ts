@@ -17,3 +17,5 @@ export type CcnSearchFilters = {
     ccn: string;
     status: string;
 };
+
+export type OperationType = "add" | "update"

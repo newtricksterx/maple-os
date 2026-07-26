@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured } from "../../lib/supabase";
 import "./CCN_Database.css";
-import type { CcnPage, CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
+import type { CcnPage, CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
 import {
     addCcnRecord,
     CcnToCcnRecord,
@@ -10,12 +10,14 @@ import {
     getStatusClassName,
     hasInvalidDateRange,
     hasSearchFilters,
+    isAwbExist,
     normalizeSearchFilters,
     normalizeStatus,
     requestCcnData,
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS } from "./CCN_Database.constants";
-import { Dialog } from "radix-ui";
+import { BaseCCNForm } from "./Components/BaseCCNForm";
+import { OperationDialog } from "./Components/OperationDialog";
 
 export function CCN_Database() {
     const [data, setData] = useState<CcnRecord[]>([]);
@@ -31,8 +33,10 @@ export function CCN_Database() {
 
     const [awbValue, setAwbValue] = useState("");
     const [ccnValue, setCcnValue] = useState("");
+    const [operationType, setOperationType] = useState<OperationType | null>()
 
     const [addErrorMessage, setAddErrorMessage] = useState<string | null>(null);
+    const [addSuccessMessage, setAddSuccessMessage] = useState<string | null>(null);
 
 
     const dateRangeError = hasInvalidDateRange(searchDraft)
@@ -102,7 +106,7 @@ export function CCN_Database() {
         }));
     }, []);
 
-    const handleStagedCcnChange = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+    const handleStagedCcnChange = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         // 1. Extract data using FormData
@@ -114,28 +118,21 @@ export function CCN_Database() {
         const cleanCcnList = rawCcn.split(/\s+/).filter((ccn) => ccn !== "");
         const cleanAwbValue = rawAwb.trim();
 
+        // check if awb exists in supabase
+        if (operationType == "update") {
+            // do stuff
+            const exist = await isAwbExist(cleanAwbValue)
+
+            if (!exist){
+                console.log("awb does not exist")
+                return 
+            }
+        }
+
         // 3. Update state
         setStagedCcnRecords(cleanCcnList.map((ccn) => CcnToCcnRecord(ccn, cleanAwbValue)));
 
-    }, []);
-
-    const handleAddToDatabase = useCallback(async () => {
-        if (stagedCcnRecords.length === 0) {
-            return;
-        }
-
-        setAddErrorMessage(null);
-
-        for (const record of stagedCcnRecords) {
-            try {
-                await addCcnRecord(record);
-            } catch (error) {
-                console.error(`Error adding CCN record ${record.ccn}:`, error);
-                setAddErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
-                return;
-            }
-        }
-    }, [stagedCcnRecords]);
+    }, [operationType]);
 
     const handleCommentChange = useCallback((ccn: string, comment: string) => {
         setStagedCcnRecords((currentRecords) =>
@@ -170,47 +167,79 @@ export function CCN_Database() {
         );
     }, []);
 
-    const addCCNForm = () => {
-        return (
-            <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange}>
-                <input
-                    type="text"
-                    id="awb"
-                    name="awb"
-                    className="ccn-database-input"
-                    placeholder="Enter AWB..."
-                    value={awbValue}
-                    onChange={(e) => setAwbValue(e.target.value)}
-                />
-                <label className="ccn-database-add">
-                    <textarea
-                        placeholder="Enter CCNs..."
-                        className="ccn-database-textarea"
-                        name="ccn"
-                        value={ccnValue}
-                        onChange={(e) => setCcnValue(e.target.value)}
-                    />
-                </label>
-                <footer className="ccn-database__add-form-footer">
-                    <button
-                        className="ccn-database__reset-button"
-                        type="button"
-                        onClick={() => {setStagedCcnRecords([]); setAwbValue(""); setCcnValue(""); setAddErrorMessage(null);}}
-                    >
-                        Reset Form
-                    </button>
-                    <button
-                        className="ccn-database__search-button"
-                        type="submit"
-                        disabled={loading || awbValue.length === 0 || ccnValue.length === 0}
-                    >
-                        Stage CCNs
-                    </button>
-                </footer>
+    const handleResetForm = useCallback( () => {
+        setStagedCcnRecords([]); 
+        setAwbValue(""); 
+        setCcnValue(""); 
+        setAddErrorMessage(null);
+        setAddSuccessMessage(null);
+    }, [])
 
-            </form>
-        );
-    };
+    const handleAddToDatabase = useCallback(async () => {
+        if (stagedCcnRecords.length === 0) {
+            return;
+        }
+
+        setAddErrorMessage(null);
+        setAddSuccessMessage(null);
+
+        for (const record of stagedCcnRecords) {
+            try {
+                await addCcnRecord(record);
+            } catch (error) {
+                console.error(`Error adding CCN record ${record.ccn}:`, error);
+                setAddSuccessMessage(null);
+                setAddErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
+                return;
+            }
+        }
+
+        setAddSuccessMessage(`Successfully added ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} to the database.`);
+
+    }, [stagedCcnRecords]);
+
+    const applySearch = useCallback(() => {
+        const nextSearch = normalizeSearchFilters(searchDraft);
+
+        if (hasInvalidDateRange(nextSearch)) {
+            return;
+        }
+
+        setSearchDraft(nextSearch);
+        setAppliedSearch(nextSearch);
+        setData([]);
+        void fetchData(1, nextSearch);
+    }, [fetchData, searchDraft]);
+
+    useEffect(() => {
+        let ignore = false;
+
+        const fetchInitialData = async () => {
+            try {
+                const ccnPage = await requestCcnData(1);
+
+                if (!ignore) {
+                    applyCcnPage(ccnPage);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+
+                if (!ignore) {
+                    setError(getCcnErrorMessage(error));
+                }
+            } finally {
+                if (!ignore) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void fetchInitialData();
+
+        return () => {
+            ignore = true;
+        };
+    }, [applyCcnPage]);
 
     const stagedCcnList = () => {
         return (
@@ -269,13 +298,15 @@ export function CCN_Database() {
                     <button
                         className="ccn-database__reset-button"
                         type="button"
-                        onClick={() => {setStagedCcnRecords([]); setAwbValue(""); setCcnValue(""); setAddErrorMessage(null);}}
+                        onClick={handleResetForm}
                     >
                         Reset Form
                     </button>
 
                     {addErrorMessage ? (
                         <p className="ccn-database__notice ccn-database__notice--error">{addErrorMessage}</p>
+                    ) : addSuccessMessage ? (
+                        <p className="ccn-database__notice ccn-database__notice--success">{addSuccessMessage}</p>
                     ) : null}
 
                     <button
@@ -291,49 +322,6 @@ export function CCN_Database() {
         );
     }
 
-    const applySearch = useCallback(() => {
-        const nextSearch = normalizeSearchFilters(searchDraft);
-
-        if (hasInvalidDateRange(nextSearch)) {
-            return;
-        }
-
-        setSearchDraft(nextSearch);
-        setAppliedSearch(nextSearch);
-        setData([]);
-        void fetchData(1, nextSearch);
-    }, [fetchData, searchDraft]);
-
-    useEffect(() => {
-        let ignore = false;
-
-        const fetchInitialData = async () => {
-            try {
-                const ccnPage = await requestCcnData(1);
-
-                if (!ignore) {
-                    applyCcnPage(ccnPage);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-
-                if (!ignore) {
-                    setError(getCcnErrorMessage(error));
-                }
-            } finally {
-                if (!ignore) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        void fetchInitialData();
-
-        return () => {
-            ignore = true;
-        };
-    }, [applyCcnPage]);
-
     return (
         <section className="ccn-database">
             <header className="ccn-database__header">
@@ -347,74 +335,38 @@ export function CCN_Database() {
                 </div>
 
                 <div className="ccn-database__actions">
-                    <Dialog.Root>
-                        <Dialog.Trigger asChild>
-                            <button
-                                className="ccn-database__add"
-                                type="button"
-                                disabled={loading || !isSupabaseConfigured}
-                            >
-                                Update CCN Records
-                            </button>
-                        </Dialog.Trigger>
-                        <Dialog.Overlay className="ccn-dialog__overlay" />
-                        <Dialog.Content className="ccn-dialog">
-                            <div className="ccn-dialog__header">
-                                <div className="ccn-dialog__heading">
-                                    <Dialog.Title className="ccn-dialog__title">
-                                        Update CCN Records
-                                    </Dialog.Title>
-                                </div>
-                                <Dialog.Close asChild>
-                                    <button
-                                        className="ccn-dialog__close"
-                                        type="button"
-                                        aria-label="Close dialog"
-                                    >
-                                        X
-                                    </button>
-                                </Dialog.Close>
-                            </div>
-                            
-                            <div className="ccn-dialog__body">
-                                { stagedCcnRecords.length > 0 ? stagedCcnList() : addCCNForm() }
-                            </div>
-                        </Dialog.Content>
-                    </Dialog.Root>
-                    <Dialog.Root>
-                        <Dialog.Trigger asChild>
-                            <button
-                                className="ccn-database__add"
-                                type="button"
-                                disabled={loading || !isSupabaseConfigured}
-                            >
-                                Add CCN Records
-                            </button>
-                        </Dialog.Trigger>
-                        <Dialog.Overlay className="ccn-dialog__overlay" />
-                        <Dialog.Content className="ccn-dialog">
-                            <div className="ccn-dialog__header">
-                                <div className="ccn-dialog__heading">
-                                    <Dialog.Title className="ccn-dialog__title">
-                                        Add CCN Records
-                                    </Dialog.Title>
-                                </div>
-                                <Dialog.Close asChild>
-                                    <button
-                                        className="ccn-dialog__close"
-                                        type="button"
-                                        aria-label="Close dialog"
-                                    >
-                                        X
-                                    </button>
-                                </Dialog.Close>
-                            </div>
-                            
-                            <div className="ccn-dialog__body">
-                                { stagedCcnRecords.length > 0 ? stagedCcnList() : addCCNForm() }
-                            </div>
-                        </Dialog.Content>
-                    </Dialog.Root>
+                    <OperationDialog 
+                        title="Update CCN Records"
+                        disabled={loading || !isSupabaseConfigured}
+                        stagedCcnRecords={stagedCcnRecords}
+                        listElement={stagedCcnList()}
+                        formElement={<BaseCCNForm 
+                                        awbValue={awbValue} 
+                                        ccnValue={ccnValue} 
+                                        disabled={loading || awbValue.length === 0 || ccnValue.length === 0}   
+                                        handleStagedCcnChange={handleStagedCcnChange}
+                                        handleAwbChange={setAwbValue}
+                                        handleCcnChange={setCcnValue}
+                                        handleResetForm={handleResetForm}/>}
+                        setOperationType={() => {setOperationType("update")}}
+                    />
+
+
+                    <OperationDialog 
+                        title="Add CCN Records"
+                        disabled={loading || !isSupabaseConfigured}
+                        stagedCcnRecords={stagedCcnRecords}
+                        listElement={stagedCcnList()}
+                        formElement={<BaseCCNForm 
+                                        awbValue={awbValue} 
+                                        ccnValue={ccnValue} 
+                                        disabled={loading || awbValue.length === 0 || ccnValue.length === 0}   
+                                        handleStagedCcnChange={handleStagedCcnChange}
+                                        handleAwbChange={setAwbValue}
+                                        handleCcnChange={setCcnValue}
+                                        handleResetForm={handleResetForm}/>}
+                        setOperationType={() => {setOperationType("add")}}
+                    />
                 </div>
             </header>
 
