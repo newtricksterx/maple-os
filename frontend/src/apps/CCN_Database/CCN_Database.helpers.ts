@@ -29,7 +29,7 @@ export function normalizeSearchFilters(filters: CcnSearchFilters): CcnSearchFilt
         awb: filters.awb.trim(),
         ccn: filters.ccn.trim(),
         status: filters.status,
-        released_on: filters.released_on.trim(),
+        released_on: filters.released_on,
     };
 }
 
@@ -222,4 +222,14 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
         created_at: formatDate(new Date().toISOString()),
         updated_at: formatDate(new Date().toISOString()),
     };
+}
+
+export const dataToHashMap = (data : CcnRecord[]): Map<string, string[]> => {
+    const map = new Map<string, string[]>()
+
+    for (const record of data) {
+        map.set(record.awb, [...(map.get(record.awb) ?? []), record.ccn])
+    }
+
+    return map
 }

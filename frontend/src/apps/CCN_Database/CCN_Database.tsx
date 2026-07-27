@@ -16,11 +16,13 @@ import {
     normalizeStatus,
     requestCcnData,
     updateCcnRecord,
+    dataToHashMap,
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS } from "./CCN_Database.constants";
 import { BaseCCNForm } from "./Components/BaseCCNForm";
 import { OperationDialog } from "./Components/OperationDialog";
 import { BaseStagedCCNsList } from "./Components/BaseStagedCCNsList";
+import { ExitIcon } from "@radix-ui/react-icons";
 
 export function CCN_Database() {
     const [data, setData] = useState<CcnRecord[]>([]);
@@ -240,7 +242,31 @@ export function CCN_Database() {
 
         setAddSuccessMessage(`Successfully added ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} to the database.`);
 
-    }, [stagedCcnRecords]);
+    }, [operationType, stagedCcnRecords]);
+
+    const handleExportData = useCallback(() => {
+        const mappedData = dataToHashMap(data);
+
+        const rows: string[] = [];
+
+        mappedData.forEach((values, key) => {
+            rows.push(key);
+            values.forEach((value) => rows.push(value));
+            rows.push("");
+        });
+
+        const csvContent = rows.join("\r\n");
+        const file = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(file);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "ccn-export.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, [data]);
 
 
     const applySearch = useCallback(() => {
@@ -305,7 +331,13 @@ export function CCN_Database() {
                     </p>
                 </div>
 
+
                 <div className="ccn-database__actions">
+                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data} onClick={handleExportData}>
+                        <ExitIcon />
+                        Export
+                    </button>
+
                     <OperationDialog 
                         title="Update CCN Records"
                         disabled={loading || !isSupabaseConfigured}

@@ -91,6 +91,32 @@
     transition: filter 0.15s ease, opacity 0.15s ease;
 }
 
+.ccn-database__export {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.ccn-database__export:hover:not(:disabled) {
+    background: rgba(79, 121, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.ccn-database__export:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .ccn-database__refresh:hover:not(:disabled) {
     filter: brightness(1.1);
 }
