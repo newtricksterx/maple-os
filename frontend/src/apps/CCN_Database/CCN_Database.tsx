@@ -526,18 +526,6 @@ export function CCN_Database() {
                     </div>
                 </div>
 
-                <div className="ccn-database__search-footer">
-                    <button
-                        className="ccn-database__search-button"
-                        type="submit"
-                        disabled={loading || Boolean(dateRangeError) || !isSupabaseConfigured}
-                    >
-                        Search
-                    </button>
-
-                    <p className="ccn-database__search-hint">Use the date range to narrow large result sets quickly.</p>
-                </div>
-
                 {dateRangeError ? (
                     <p
                         className="ccn-database__search-error"
