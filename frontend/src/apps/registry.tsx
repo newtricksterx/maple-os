@@ -21,7 +21,7 @@ export const APPS: AppDefinition[] = [
     title: 'CCN Database',
     icon: '📚',
     component: CCN_Database,
-    defaultSize: { width: 900, height: 750 }
+    defaultSize: { width: 1200, height: 750 }
   }
 ]
 

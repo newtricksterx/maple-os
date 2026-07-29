@@ -71,7 +71,7 @@ export const BaseStagedCCNsList = (
                                             <input 
                                                 type="date" 
                                                 value={formatDate(record.created_at)} 
-                                                onChange={(e) => handleDateChange(record.ccn, formatDate(e.target.value))} />
+                                                onChange={(e) => handleDateChange(record.ccn, e.target.value)} />
                                             : <span>{formatDate(record.created_at)}</span>
                                         }
                                     </td>

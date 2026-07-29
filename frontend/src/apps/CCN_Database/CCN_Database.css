@@ -33,7 +33,6 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    text-align: center;
     gap: 16px;
 }
 
@@ -297,7 +296,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 16px;
+    padding: 14px;
     background: linear-gradient(145deg, rgba(32, 32, 37, 0.95), rgba(24, 24, 29, 0.92));
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -306,14 +305,14 @@
 
 .ccn-database__search-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
 }
 
 .ccn-database__search-title {
     margin: 0;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text);
 }
@@ -387,10 +386,11 @@
 
 .ccn-database__search-button {
     min-height: 40px;
+    min-width: 76px;
     padding: 8px 16px;
     font-size: 13px;
     font-weight: 700;
-    color: #fff;
+    color: var(--text);
     background: var(--accent);
     border: none;
     border-radius: 10px;
@@ -409,16 +409,17 @@
 }
 
 .ccn-database__search-clear {
-    min-height: 36px;
-    padding: 8px 12px;
-    font-size: 12px;
+    min-height: 40px;
+    min-width: 76px;
+    padding: 8px 16px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--text);
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--border);
+    background: rgba(45, 44, 44, 1);
+    border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition: filter 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .ccn-database__search-clear:hover {

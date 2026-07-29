@@ -1,10 +1,21 @@
 import type { CcnPage, CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
 import {EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE, MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
 import { supabase } from "../../lib/supabase";
+
 export function formatDate(value?: string) {
-    const date = value?.split("T")[0];
-    return date || "-";
+    if (!value) return "";
+    
+    // Fix: If it's already a plain date (no 'T' or time info), return it directly
+    if (value.length === 10 && !value.includes("T")) {
+        return value;
+    }
+    
+    // Otherwise, safely convert full Supabase timestamps using New York time
+    return new Date(value).toLocaleDateString('en-CA', { 
+        timeZone: 'America/New_York' 
+    });
 }
+
 
 export function normalizeStatus(status?: string): Status {
     if (status === "Released" || status === "Exam" || status === "Rejected" || status === "Other") {
@@ -84,7 +95,7 @@ export async function addCcnRecord(record: CcnRecord): Promise<void> {
     }
 
     if (record.status == "Released"){
-        record.released_on = formatDate(new Date().toISOString())
+        record.released_on = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
     }
 
     const { error } = await supabase.from("CCN_Registry").insert(record);
@@ -94,27 +105,19 @@ export async function addCcnRecord(record: CcnRecord): Promise<void> {
     }
 }
 
-export async function updateCcnRecord(record: CcnRecord) : Promise<void> {
+export async function updateCcnRecords(records: CcnRecord[]) : Promise<void> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
-    const releasedOn = record.status === "Released"
-        ? formatDate(new Date().toISOString())
-        : null;
-
     const { error } = await supabase
         .from("CCN_Registry")
-        .update({
-            status: record.status,
-            updated_at: formatDate(new Date().toISOString()),
-            comment: record.comment,
-            released_on: releasedOn,
-        })
-        .eq("ccn", record.ccn)
-        .eq("awb", record.awb);
+        .upsert(
+            records
+        )
 
     if (error) {
+        console.log(error)
         throw error;
     }
 }
@@ -136,16 +139,54 @@ export async function isAwbExist(awb: string): Promise<boolean> {
     return (count ?? 0) > 0;
 }
 
-export async function getCCNs(ccns: string[], awb: string): Promise<CcnRecord[] | null> {
+export async function isCcnsExist(ccns: string[]) : Promise<string[]> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
     const { data, error } = await supabase
         .from("CCN_Registry")
-        .select('*', { count: 'exact' })
+        .select('*')
         .in('ccn', ccns)
-        .eq('awb', awb);
+
+    if (error) {
+        throw error;
+    }
+
+    const matchedCcns = data.map(row => row.ccn)
+
+    return matchedCcns;
+
+}
+
+export async function isCcnExist(ccn: string): Promise<boolean> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const { count, error } = await supabase
+        .from("CCN_Registry")
+        .select('*', { count: 'exact', head: true})
+        .eq('ccn', ccn);
+
+    if (error) {
+        throw error;
+    }
+
+    return (count ?? 0) > 0
+}
+
+export async function getCCNData(ccn: string, awb: string): Promise<CcnRecord> {
+    if (!supabase) {
+        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
+    }
+
+    const { data, error } = await supabase
+        .from("CCN_Registry")
+        .select('*')
+        .eq('ccn', ccn)
+        .eq('awb', awb)
+        .single();
 
     if (error) {
         throw error;
@@ -180,7 +221,7 @@ export async function requestCcnData(page: number, filters: CcnSearchFilters = E
     }
 
     if (filters.ccn) {
-        query = query.eq("ccn", filters.ccn);
+        query = query.eq("ccn", filters.ccn.toUpperCase());
     }
 
     if (filters.status) {
@@ -219,8 +260,8 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
         comment: "",
         released_on: null,
         status: "Exam",
-        created_at: formatDate(new Date().toISOString()),
-        updated_at: formatDate(new Date().toISOString()),
+        created_at: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }),
+        updated_at: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }),
     };
 }
 
@@ -232,4 +273,8 @@ export const dataToHashMap = (data : CcnRecord[]): Map<string, string[]> => {
     }
 
     return map
+}
+
+export const CcnListToString = (ccns: string[]) : string => {
+    return ccns.join(', ')
 }

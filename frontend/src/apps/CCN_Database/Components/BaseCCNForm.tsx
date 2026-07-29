@@ -17,7 +17,7 @@ export const BaseCCNForm = ({
     handleStagedCcnChange, handleAwbChange, handleCcnChange, handleResetForm, errorMessage } : BaseCCNFormProp) => {
 
     return (
-        <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange}>
+        <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange} autoComplete="off">
             <input
                 type="text"
                 id="awb"
@@ -40,6 +40,8 @@ export const BaseCCNForm = ({
                 <div className="ccn-database__notice-container">
                     {errorMessage && <p className="ccn-database__notice ccn-database__notice--error">{errorMessage}</p>}
                 </div>
+
+                
 
                 <div className="ccn-database__button-container">
                     <button

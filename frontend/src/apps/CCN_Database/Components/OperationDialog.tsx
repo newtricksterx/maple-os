@@ -6,14 +6,14 @@ interface OperationDialogProps {
     title: string;
     disabled: boolean;
     stagedCcnRecords: CcnRecord[]
-    listElement: React.ReactNode;
-    formElement: React.ReactNode;
+    renderList: () => React.ReactNode;
+    renderForm: () => React.ReactNode;
     setOperationType: (op: OperationType) => void;
     handleResetForm: () => void;
 
 }
 
-export const OperationDialog = ({ title, disabled, stagedCcnRecords, listElement, formElement, setOperationType, handleResetForm } : OperationDialogProps) => {
+export const OperationDialog = ({ title, disabled, stagedCcnRecords, renderList, renderForm, setOperationType, handleResetForm } : OperationDialogProps) => {
     const [open, setOpen] = useState(false);
 
     const handleOpenChange = (nextOpen: boolean) => {
@@ -60,7 +60,7 @@ export const OperationDialog = ({ title, disabled, stagedCcnRecords, listElement
                 </div>
                 
                 <div className="ccn-dialog__body">
-                    { stagedCcnRecords.length > 0 ? listElement : formElement}
+                    { stagedCcnRecords.length > 0 ? renderList() : renderForm()}
                 </div>
 
             </Dialog.Content>

@@ -11,18 +11,21 @@ import {
     hasInvalidDateRange,
     hasSearchFilters,
     isAwbExist,
-    getCCNs,
     normalizeSearchFilters,
     normalizeStatus,
     requestCcnData,
-    updateCcnRecord,
+    updateCcnRecords,
     dataToHashMap,
+    getCCNData,
+    isCcnsExist,
+    CcnListToString,
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS } from "./CCN_Database.constants";
 import { BaseCCNForm } from "./Components/BaseCCNForm";
 import { OperationDialog } from "./Components/OperationDialog";
 import { BaseStagedCCNsList } from "./Components/BaseStagedCCNsList";
 import { ExitIcon } from "@radix-ui/react-icons";
+
 
 export function CCN_Database() {
     const [data, setData] = useState<CcnRecord[]>([]);
@@ -38,7 +41,7 @@ export function CCN_Database() {
 
     const [awbValue, setAwbValue] = useState("");
     const [ccnValue, setCcnValue] = useState("");
-    const [operationType, setOperationType] = useState<OperationType | null>()
+    const [operationType, setOperationType] = useState<OperationType | null>();
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [addSuccessMessage, setAddSuccessMessage] = useState<string | null>(null);
@@ -114,55 +117,67 @@ export function CCN_Database() {
     const handleStagedCcnChange = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        // 1. Extract data using FormData
-        const formData = new FormData(event.currentTarget);
-        const rawCcn = formData.get("ccn") as string || "";
-        const rawAwb = formData.get("awb") as string || "";
+        setErrorMessage(null);
+        setAddSuccessMessage(null);
+        setLoading(true);
+        
 
-        // 2. Process the strings
-        const cleanCcnList = rawCcn.split(/\s+/).filter((ccn) => ccn !== "");
-        const cleanAwbValue = rawAwb.trim();
+        try {
+            const cleanCcnList = ccnValue.split(/\s+/).filter((ccn) => ccn !== "");
+            const cleanAwbValue = awbValue.trim();
 
-        if (operationType == "update") {
-            // check if awb and ccns exists in supabase
-            setLoading(true);
-
-            const awbExist = await isAwbExist(cleanAwbValue)
-
-            if (!awbExist){
-                console.log("awb does not exist")
-                setErrorMessage(`AWB - ${cleanAwbValue} does not exist in the database. Please enter a valid AWB.`)
-                setLoading(false);
+            if (cleanCcnList.length === 0) {
+                setErrorMessage("Please enter at least one CCN.");
                 return;
             }
 
-            const ccns = await getCCNs(cleanCcnList, cleanAwbValue)
-
-            if (!ccns || ccns.length === 0){
-                console.log("ccns do not exist")
-                setErrorMessage(`One or more CCNs do not exist in the database for AWB - ${cleanAwbValue}. Please enter valid CCNs.`)
-                setLoading(false);
+            if (!cleanAwbValue) {
+                setErrorMessage("Please enter an AWB.");
                 return;
             }
 
+            if (operationType === "update") {
+                const awbExist = await isAwbExist(cleanAwbValue);
+
+                if (!awbExist) {
+                    setErrorMessage(`AWB - ${cleanAwbValue} does not exist in the database. Please enter a valid AWB.`);
+                    return;
+                }
+
+                const ccns = await Promise.all(
+                    cleanCcnList.map((ccn) => getCCNData(ccn, cleanAwbValue))
+                );
+
+                setStagedCcnRecords(
+                    ccns.map((record) => ({
+                        ...record,
+                        awb: cleanAwbValue,
+                        status: normalizeStatus("Released"),
+                        comment: record.comment ?? "",
+                        released_on: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+                    }))
+                );
+
+                return;
+            }
+
+            
+            const matchedCcns = await isCcnsExist(cleanCcnList);
+
+            if (matchedCcns.length > 0) {
+                setErrorMessage(`CCNs - ${CcnListToString(matchedCcns)} already exist in the database. Please enter a new CCN.`);
+                return;
+            }
+            
+
+            setStagedCcnRecords(cleanCcnList.map((ccn) => CcnToCcnRecord(ccn, cleanAwbValue)));
+        } catch (error) {
+            console.error("Error staging CCN records:", error);
+            setErrorMessage(getCcnErrorMessage(error));
+        } finally {
             setLoading(false);
-
-            setStagedCcnRecords(
-                ccns.map((record) => ({
-                    ...record,
-                    awb: cleanAwbValue,
-                    status: normalizeStatus("Released"),
-                    comment: record.comment ?? "",
-                }))
-            );
-
-            return;
         }
-
-        // 3. Update state
-        setStagedCcnRecords(cleanCcnList.map((ccn) => CcnToCcnRecord(ccn, cleanAwbValue)));
-
-    }, [operationType]);
+    }, [awbValue, ccnValue, operationType]);
 
     const handleCommentChange = useCallback((ccn: string, comment: string) => {
         setStagedCcnRecords((currentRecords) =>
@@ -176,9 +191,18 @@ export function CCN_Database() {
     }, []);
 
     const handleStatusChange = useCallback((ccn: string, status: Status) => {
+
+
         setStagedCcnRecords((currentRecords) =>
             currentRecords.map((record) => {
                 if (record.ccn === ccn) {
+                    if (status === "Released"){
+                        record.released_on = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+                    }
+                    else {
+                        record.released_on = null
+                    }
+
                     return { ...record, status };
                 }
                 return record;
@@ -214,16 +238,16 @@ export function CCN_Database() {
         setAddSuccessMessage(null);
 
         if (operationType === "update") {
-            for (const record of stagedCcnRecords) {
-                try {
-                    await updateCcnRecord(record);
-                } catch (error) {
-                    console.error(`Error updating CCN record ${record.ccn}:`, error);
-                    setAddSuccessMessage(null);
-                    setErrorMessage(`CCN - ${record.ccn} ${getCcnErrorMessage(error)}`);
-                    return;
-                }
+
+            try {
+                await updateCcnRecords(stagedCcnRecords);
+            } catch (error) {
+                console.error(`Error updating CCN record`, error);
+                setAddSuccessMessage(null);
+                setErrorMessage(`${getCcnErrorMessage(error)}`);
+                return;
             }
+            
 
             setAddSuccessMessage(`Successfully updated ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} in the database.`);
             return;
@@ -244,18 +268,35 @@ export function CCN_Database() {
 
     }, [operationType, stagedCcnRecords]);
 
+    const escapeCsvField = (value: string): string => {
+        // Detect values that Excel/WPS will misinterpret as numbers
+        // (leading zeros, plain integers/decimals, scientific notation, etc.)
+        const looksNumeric = /^[+-]?\d+(\.\d+)?$/.test(value) || /^0\d+/.test(value);
+
+        const escaped = value.replace(/"/g, '""');
+
+        if (looksNumeric) {
+            // Force Excel/WPS to treat it as literal text, avoids the
+            // "number stored as text" warning and leading apostrophe
+            return `="${escaped}"`;
+        }
+
+        // Standard CSV quoting for anything with commas, quotes, or newlines
+        return /[",\r\n]/.test(value) ? `"${escaped}"` : escaped;
+    };
+
     const handleExportData = useCallback(() => {
         const mappedData = dataToHashMap(data);
 
         const rows: string[] = [];
 
         mappedData.forEach((values, key) => {
-            rows.push(key);
-            values.forEach((value) => rows.push(value));
+            rows.push(escapeCsvField(key));
+            values.forEach((value) => rows.push(escapeCsvField(value)));
             rows.push("");
         });
 
-        const csvContent = rows.join("\r\n");
+        const csvContent = "\uFEFF" + rows.join("\r\n"); // BOM helps WPS/Excel detect UTF-8 correctly
         const file = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(file);
         const link = document.createElement("a");
@@ -327,7 +368,7 @@ export function CCN_Database() {
                     <p className="ccn-database__subtitle">
                         {loading && data.length === 0
                             ? "Loading records..."
-                            : `${totalRows} ${totalRows === 1 ? "record" : "records"} across ${totalPages} ${totalPages === 1 ? "page" : "pages"}`}
+                            : `${totalRows} ${totalRows === 1 ? "record" : "records"}`}
                     </p>
                 </div>
 
@@ -342,7 +383,7 @@ export function CCN_Database() {
                         title="Update CCN Records"
                         disabled={loading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
-                        listElement={<BaseStagedCCNsList
+                        renderList={ () => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}
                                             handleStatusChange={handleStatusChange}
                                             handleCommentChange={handleCommentChange}
@@ -353,8 +394,8 @@ export function CCN_Database() {
                                             operationType="update"
                                             errorMessage={errorMessage}
                                             successMessage={addSuccessMessage}
-                                        />}
-                        formElement={<BaseCCNForm 
+                                        />)}
+                        renderForm={ () => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
                                         disabled={loading || awbValue.length === 0 || ccnValue.length === 0}   
@@ -363,7 +404,7 @@ export function CCN_Database() {
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
                                         errorMessage={errorMessage}
-                                    />}
+                                    />)}
                         setOperationType={() => {setOperationType("update")}}
                         handleResetForm={handleResetForm}
                     />
@@ -373,7 +414,7 @@ export function CCN_Database() {
                         title="Add CCN Records"
                         disabled={loading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
-                        listElement={<BaseStagedCCNsList
+                        renderList={() => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}
                                             handleStatusChange={handleStatusChange}
                                             handleCommentChange={handleCommentChange}
@@ -384,15 +425,16 @@ export function CCN_Database() {
                                             operationType="add"
                                             errorMessage={errorMessage}
                                             successMessage={addSuccessMessage}
-                                        />}
-                        formElement={<BaseCCNForm 
+                                        />)}
+                        renderForm={() => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
                                         disabled={loading || awbValue.length === 0 || ccnValue.length === 0}   
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
-                                        handleResetForm={handleResetForm}/>}
+                                        handleResetForm={handleResetForm}
+                                        errorMessage={errorMessage}/>)}
                         setOperationType={() => {setOperationType("add")}}
                         handleResetForm={handleResetForm}
                     />
@@ -428,12 +470,11 @@ export function CCN_Database() {
                 <div className="ccn-database__search-header">
                     <div>
                         <h2 className="ccn-database__search-title">Search filters</h2>
-                        <p className="ccn-database__search-description">Refine records by date, AWB, CCN, or release state.</p>
                     </div>
 
                     <div className="ccn-database__search-toolbar">
                         {hasAppliedSearch ? (
-                            <span className="ccn-database__search-active">Filters applied</span>
+                            <span className="ccn-database__search-active">Filters Applied</span>
                         ) : null}
                         <button
                             className="ccn-database__search-clear"
@@ -441,6 +482,13 @@ export function CCN_Database() {
                             onClick={clearSearch}
                         >
                             Clear
+                        </button>
+                        <button
+                            className="ccn-database__search-button"
+                            type="submit"
+                            disabled={loading || Boolean(dateRangeError) || !isSupabaseConfigured}
+                        >
+                            Search
                         </button>
                     </div>
                 </div>
