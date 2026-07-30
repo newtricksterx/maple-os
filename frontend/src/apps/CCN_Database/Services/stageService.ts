@@ -1,6 +1,6 @@
 // stagingService.ts
 
-import { CcnListToString, CcnToCcnRecord, getCCNData, isAwbExist, isCcnsExist, normalizeStatus } from "../CCN_Database.helpers";
+import { CcnListToString, CcnToCcnRecord, getCCNData, isCcnsExist, normalizeStatus } from "../CCN_Database.helpers";
 import type { CcnRecord, OperationType } from "../CCN_Database.types";
 
 interface StageCcnRequest {
@@ -22,29 +22,21 @@ export async function stageCcnRecords({
         throw new Error("Please enter at least one CCN.");
     }
 
-    if (!cleanAwbValue) {
+    if (operationType === "add" && !cleanAwbValue) {
         throw new Error("Please enter an AWB.");
     }
 
     if (operationType === "update") {
 
-        const awbExist = await isAwbExist(cleanAwbValue);
-
-        if (!awbExist) {
-            throw new Error(
-                `AWB - ${cleanAwbValue} does not exist.`
-            );
-        }
-
         const ccns = await Promise.all(
             cleanCcnList.map(ccn =>
-                getCCNData(ccn, cleanAwbValue)
+                getCCNData(ccn)
             )
         );
 
         return ccns.map(record => ({
             ...record,
-            awb: cleanAwbValue,
+            awb: record.awb,
             status: normalizeStatus("Released"),
             comment: record.comment ?? "",
             released_on: new Date().toLocaleString(

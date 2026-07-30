@@ -1,9 +1,11 @@
 import "../CCN_Database.css"
+import type { OperationType } from "../CCN_Database.types";
 
 interface BaseCCNFormProp {
     awbValue: string;
     ccnValue: string;
-    disabled: boolean;
+    loading: boolean;
+    operationType: OperationType;
     handleStagedCcnChange: (event: React.FormEvent<HTMLFormElement>) => void;
     handleAwbChange: (awbValue: string) => void;
     handleCcnChange: (CcnValue: string) => void;
@@ -13,20 +15,27 @@ interface BaseCCNFormProp {
 
 
 export const BaseCCNForm = ({ 
-    awbValue, ccnValue, disabled, 
+    awbValue, ccnValue, loading, operationType,
     handleStagedCcnChange, handleAwbChange, handleCcnChange, handleResetForm, errorMessage } : BaseCCNFormProp) => {
+
+    const isFilled = operationType === "add" ? (awbValue.length > 0 && ccnValue.length > 0) : (ccnValue.length)
+
+
 
     return (
         <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange} autoComplete="off">
-            <input
-                type="text"
-                id="awb"
-                name="awb"
-                className="ccn-database-input"
-                placeholder="Enter AWB..."
-                value={awbValue}
-                onChange={(e) => handleAwbChange(e.target.value)}
-            />
+            {
+                operationType === "add" ?             
+                    <input
+                    type="text"
+                    id="awb"
+                    name="awb"
+                    className="ccn-database-input"
+                    placeholder="Enter AWB..."
+                    value={awbValue}
+                    onChange={(e) => handleAwbChange(e.target.value)}
+                /> : null
+            }
             <label className="ccn-database-add">
                 <textarea
                     placeholder="Enter CCNs..."
@@ -54,7 +63,7 @@ export const BaseCCNForm = ({
                     <button
                         className="ccn-database__search-button"
                         type="submit"
-                        disabled={disabled}
+                        disabled={loading || !isFilled}
                     >
                         Stage CCNs
                     </button>

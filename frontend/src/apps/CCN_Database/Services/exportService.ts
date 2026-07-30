@@ -1,5 +1,5 @@
 import { dataToHashMap, getNowDate } from "../CCN_Database.helpers";
-import type { CcnRecord } from "../CCN_Database.types";
+import type { CcnRecord, Status } from "../CCN_Database.types";
 
 const escapeCsvField = (value: string): string => {
     // Detect values that Excel/WPS will misinterpret as numbers
@@ -18,7 +18,7 @@ const escapeCsvField = (value: string): string => {
     return /[",\r\n]/.test(value) ? `"${escaped}"` : escaped;
 };
 
-export function exportData(ccns: CcnRecord[]) {
+export function exportData(ccns: CcnRecord[], status: Status) {
     const mappedCcns = dataToHashMap(ccns)
 
     const rows: string[] = [];
@@ -35,7 +35,7 @@ export function exportData(ccns: CcnRecord[]) {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `${getNowDate()}-ccn-export.csv`;
+    link.download = `${getNowDate()}-${status}-export.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -18,7 +18,7 @@ export function formatDate(value?: string) {
 
 
 export function normalizeStatus(status?: string): Status {
-    if (status === "Released" || status === "Exam" || status === "Rejected" || status === "Other") {
+    if (status === "Released" || status === "Exam" || status === "CCN not on file" || status === "Rejected" || status === "Other") {
         return status;
     }
 
@@ -26,6 +26,10 @@ export function normalizeStatus(status?: string): Status {
 }
 
 export function getStatusClassName(status: Status) {
+    if (status === "CCN not on file"){
+        return "ccn-status--ccn_not_on_file"
+    }
+
     return `ccn-status--${status.toLowerCase()}`;
 }
 
@@ -172,7 +176,7 @@ export async function isCcnExist(ccn: string): Promise<boolean> {
     return (count ?? 0) > 0
 }
 
-export async function getCCNData(ccn: string, awb: string): Promise<CcnRecord> {
+export async function getCCNData(ccn: string): Promise<CcnRecord> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
@@ -181,7 +185,6 @@ export async function getCCNData(ccn: string, awb: string): Promise<CcnRecord> {
         .from("CCN_Registry")
         .select('*')
         .eq('ccn', ccn)
-        .eq('awb', awb)
         .single();
 
     if (error) {

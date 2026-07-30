@@ -602,6 +602,12 @@
     border: 1px solid rgba(255, 107, 107, 0.32);
 }
 
+.ccn-status--ccn_not_on_file {
+    color: #fff45d;
+    background: rgba(172, 169, 42, 0.12);
+    border: 1px solid rgba(150, 148, 19, 0.32);
+}
+
 .ccn-status--other {
     color: #c7d2fe;
     background: rgba(129, 140, 248, 0.12);

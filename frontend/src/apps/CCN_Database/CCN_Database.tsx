@@ -51,7 +51,7 @@ export function CCN_Database() {
         : "No CCN records found.";
 
     const statusCounts = useMemo(() => {
-        const counts = { released: 0, inReview: 0, rejected: 0, other: 0 };
+        const counts = { released: 0, exam: 0, ccn_not_on_file: 0, rejected: 0, other: 0 };
 
         data.forEach((ccn) => {
             const status = normalizeStatus(ccn.status);
@@ -59,10 +59,13 @@ export function CCN_Database() {
             if (status === "Released") {
                 counts.released += 1;
             } else if (status === "Exam") {
-                counts.inReview += 1;
+                counts.exam += 1;
             } else if (status === "Rejected") {
                 counts.rejected += 1;
-            } else {
+            } else if (status === "CCN not on file") {
+                counts.ccn_not_on_file += 1
+            }             
+            else {
                 counts.other += 1;
             }
         });
@@ -267,7 +270,7 @@ export function CCN_Database() {
 
 
                 <div className="ccn-database__actions">
-                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data} onClick={() => exportData(data)}>
+                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data} onClick={() => exportData(data, searchDraft.status as Status)}>
                         <ExitIcon />
                         Export
                     </button>
@@ -291,7 +294,8 @@ export function CCN_Database() {
                         renderForm={ () => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
-                                        disabled={loading || awbValue.length === 0 || ccnValue.length === 0}   
+                                        loading={loading}  
+                                        operationType="update" 
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
@@ -322,7 +326,8 @@ export function CCN_Database() {
                         renderForm={() => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
-                                        disabled={loading || awbValue.length === 0 || ccnValue.length === 0}   
+                                        loading={loading}  
+                                        operationType="add" 
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
@@ -337,7 +342,11 @@ export function CCN_Database() {
             <div className="ccn-database__stats" aria-label="CCN status summary">
                 <div className="ccn-stat">
                     <span className="ccn-stat__label">Exam</span>
-                    <span className="ccn-stat__value">{statusCounts.inReview}</span>
+                    <span className="ccn-stat__value">{statusCounts.exam}</span>
+                </div>
+                <div className="ccn-stat">
+                    <span className="ccn-stat__label">CCN not on file</span>
+                    <span className="ccn-stat__value">{statusCounts.ccn_not_on_file}</span>
                 </div>
                 <div className="ccn-stat">
                     <span className="ccn-stat__label">Rejected</span>
@@ -450,6 +459,7 @@ export function CCN_Database() {
                             <option value="">All</option>
                             <option value="Released">Released</option>
                             <option value="Exam">Exam</option>
+                            <option value="CCN not on file">CCN not on file</option>
                             <option value="Rejected">Rejected</option>
                             <option value="Other">Other</option>
                         </select>

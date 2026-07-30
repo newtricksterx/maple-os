@@ -32,8 +32,7 @@ export const BaseStagedCCNsList = (
         <div className="ccn-database__staged">
             <div className="ccn-database__staged-header">
                 <h3>Staged CCNs<span className="ccn-database__staged-header-subtitle"> - changes are saved automatically</span></h3>
-                <p>AWB: {stagedCcnRecords[0]?.awb || "—"}</p>
-                </div>
+            </div>
 
                 <div className="ccn-table-shell ccn-database__staged-table">
                     <table className="ccn-table" aria-label="Staged CCN records">
@@ -55,6 +54,7 @@ export const BaseStagedCCNsList = (
                                         <select className={`dropdown dropdown-${record.status.toLowerCase()}`} value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
                                             <option className="released" value="Released">Released</option>
                                             <option className="exam" value="Exam">Exam</option>
+                                            <option className="ccn_not_on_file" value="CCN not on file">CCN not on file</option>
                                             <option className="rejected" value="Rejected">Rejected</option>
                                             <option className="other" value="Other">Other</option>
                                         </select>
