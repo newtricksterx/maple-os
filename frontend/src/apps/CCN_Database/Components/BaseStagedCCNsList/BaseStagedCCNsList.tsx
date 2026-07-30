@@ -1,6 +1,7 @@
-import "../CCN_Database.css"
-import { formatDate } from "../CCN_Database.helpers";
-import type { CcnRecord, OperationType, Status } from "../CCN_Database.types";
+import "../../CCN_Database.css"
+import "./BaseStagedCCNsList.css"
+import { formatDate } from "../../CCN_Database.helpers";
+import type { CcnRecord, OperationType, Status } from "../../CCN_Database.types";
 
 interface StagedCcnListProps {
     stagedCcnRecords: CcnRecord[];
@@ -51,16 +52,17 @@ export const BaseStagedCCNsList = (
                                     <td>{record.ccn}</td>
                                     <td>{record.awb}</td>
                                     <td>
-                                        <select value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
-                                            <option value="Released">Released</option>
-                                            <option value="Exam">Exam</option>
-                                            <option value="Rejected">Rejected</option>
-                                            <option value="Other">Other</option>
+                                        <select className={`dropdown dropdown-${record.status.toLowerCase()}`} value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
+                                            <option className="released" value="Released">Released</option>
+                                            <option className="exam" value="Exam">Exam</option>
+                                            <option className="rejected" value="Rejected">Rejected</option>
+                                            <option className="other" value="Other">Other</option>
                                         </select>
                                     </td>
                                     <td>
                                         <input 
                                             type="text" 
+                                            className="comment"
                                             placeholder="Enter comment..." 
                                             value={record.comment || ""} 
                                             onChange={(e) => handleCommentChange(record.ccn, e.target.value)}
@@ -68,11 +70,12 @@ export const BaseStagedCCNsList = (
                                     </td>
                                     <td>
                                         { operationType == "add" ? 
-                                            <input 
+                                            <input
+                                                className="date" 
                                                 type="date" 
                                                 value={formatDate(record.created_at)} 
                                                 onChange={(e) => handleDateChange(record.ccn, e.target.value)} />
-                                            : <span>{formatDate(record.created_at)}</span>
+                                            : <span className="date">{formatDate(record.created_at)}</span>
                                         }
                                     </td>
                                 </tr>

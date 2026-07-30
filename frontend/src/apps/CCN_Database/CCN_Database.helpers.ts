@@ -26,10 +26,6 @@ export function normalizeStatus(status?: string): Status {
 }
 
 export function getStatusClassName(status: Status) {
-    if (status === "Exam") {
-        return "ccn-status--review";
-    }
-
     return `ccn-status--${status.toLowerCase()}`;
 }
 
@@ -95,7 +91,7 @@ export async function addCcnRecord(record: CcnRecord): Promise<void> {
     }
 
     if (record.status == "Released"){
-        record.released_on = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+        record.released_on = getNowDate()
     }
 
     const { error } = await supabase.from("CCN_Registry").insert(record);
@@ -260,8 +256,8 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
         comment: "",
         released_on: null,
         status: "Exam",
-        created_at: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }),
-        updated_at: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }),
+        created_at: getNowDate(),
+        updated_at: getNowDate(),
     };
 }
 
@@ -277,4 +273,8 @@ export const dataToHashMap = (data : CcnRecord[]): Map<string, string[]> => {
 
 export const CcnListToString = (ccns: string[]) : string => {
     return ccns.join(', ')
+}
+
+export const getNowDate = () : string => {
+    return new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
 }
