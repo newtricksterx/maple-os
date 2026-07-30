@@ -1,4 +1,4 @@
-import { dataToHashMap } from "../CCN_Database.helpers";
+import { dataToHashMap, getNowDate } from "../CCN_Database.helpers";
 import type { CcnRecord } from "../CCN_Database.types";
 
 const escapeCsvField = (value: string): string => {
@@ -35,7 +35,7 @@ export function exportData(ccns: CcnRecord[]) {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = "ccn-export.csv";
+    link.download = `${getNowDate()}-ccn-export.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
