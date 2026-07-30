@@ -228,9 +228,10 @@ export async function requestCcnData(page: number, filters: CcnSearchFilters = E
     }
 
     if (filters.released_on) {
-        query = query.eq("released_on", filters.released_on);
+        query = query
+            .gte('released_on', `${filters.released_on}T00:00:00`)
+            .lte('released_on', `${filters.released_on}T23:59:59`);
     }
-
     const { data, error, count } = await query.range(fromRow, toRow);
 
     if (error) {
