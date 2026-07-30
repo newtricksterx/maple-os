@@ -77,10 +77,13 @@ export function getCcnErrorMessage(error: unknown) {
         if (code && typeof code === "string" && code.trim()) {
             
             if (code === "23505") {
-                return " already exists.";
+                return "A CCN already exists.";
+            }
+            else if (code === "PGRST116") {
+                return "A CCN does not exist. Please enter a valid CCN."
             }
             else {
-                return " has an unknown error. Please contact support.";
+                return "Unknown error. Please contact support.";
             }
 
         }
@@ -180,6 +183,8 @@ export async function getCCNData(ccn: string): Promise<CcnRecord> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
+
+    console.log(ccn)
 
     const { data, error } = await supabase
         .from("CCN_Registry")

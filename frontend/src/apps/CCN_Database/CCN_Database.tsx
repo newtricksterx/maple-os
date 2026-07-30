@@ -128,7 +128,7 @@ export function CCN_Database() {
 
             setStagedCcnRecords(records)
         } catch (error) {
-            console.error("Error staging CCN records:", error);
+            console.log("Error Staging Records: ", error)
             setError(getCcnErrorMessage(error));
         } finally {
             setLoading(false);
@@ -200,6 +200,7 @@ export function CCN_Database() {
 
         } catch (error) {
             setAddSuccessMessage(null)
+            console.log("Error Attempting Operation: ", error)
             setError(`${getCcnErrorMessage(error)}`)
             return
         }
@@ -239,7 +240,7 @@ export function CCN_Database() {
             } catch (error) {
                 console.error("Error fetching data:", error);
 
-                if (!ignore) {
+                if (!ignore) { 
                     setError(getCcnErrorMessage(error));
                 }
             } finally {
