@@ -18,7 +18,13 @@ export function formatDate(value?: string) {
 
 
 export function normalizeStatus(status?: string): Status {
-    if (status === "Released" || status === "Exam" || status === "CCN not on file" || status === "Rejected" || status === "Other") {
+    if (status === "Released" || 
+        status === "Exam" || 
+        status === "CCN not on file" || 
+        status === "Pending" || 
+        status === "King" ||
+        status === "Rejected" || 
+        status === "Other") {
         return status;
     }
 

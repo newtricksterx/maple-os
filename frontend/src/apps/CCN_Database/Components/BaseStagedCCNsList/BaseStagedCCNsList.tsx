@@ -56,6 +56,8 @@ export const BaseStagedCCNsList = (
                                             <option className="exam" value="Exam">Exam</option>
                                             <option className="ccn_not_on_file" value="CCN not on file">CCN not on file</option>
                                             <option className="rejected" value="Rejected">Rejected</option>
+                                            <option className="pending" value="Pending">Pending</option>
+                                            <option className="king" value="King">King</option>
                                             <option className="other" value="Other">Other</option>
                                         </select>
                                     </td>

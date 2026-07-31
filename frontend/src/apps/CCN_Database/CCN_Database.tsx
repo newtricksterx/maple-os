@@ -415,6 +415,8 @@ export function CCN_Database() {
                             <option value="Exam">Exam</option>
                             <option value="CCN not on file">CCN not on file</option>
                             <option value="Rejected">Rejected</option>
+                            <option value="Pending">Pending</option>
+                            <option value="King">King</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>

@@ -52,7 +52,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      ccn_status: "Released" | "Exam" | "CCN not on file" | "Rejected" | "Other"
+      ccn_status: "Released" | "Exam" | "CCN not on file" | "Rejected" | "Pending" | "King" | "Other"
     }
     CompositeTypes: {
       [_ in never]: never
