@@ -608,6 +608,20 @@
     border: 1px solid rgba(150, 148, 19, 0.32);
 }
 
+.ccn-status--pending{
+    color: #5de7ff;
+    background: rgba(37, 155, 163, 0.12);
+    border: 1px solid rgba(52, 204, 204, 0.32);
+}
+
+.ccn-status--king {
+    color: #fc54ee;
+    background: rgba(182, 44, 163, 0.12);
+    border: 1px solid rgba(236, 84, 241, 0.32);
+}
+
+
+
 .ccn-status--other {
     color: #c7d2fe;
     background: rgba(129, 140, 248, 0.12);
