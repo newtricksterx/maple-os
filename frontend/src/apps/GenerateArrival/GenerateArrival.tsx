@@ -75,25 +75,43 @@ export function GenerateArrival() {
     const parseBoxFilter = (text: string) =>
         new Set(text.split(/[\s,]+/).map((s) => s.trim().toLowerCase()).filter(Boolean))
 
-    const aggregateRows = (rows: string[][]) => {
+        const aggregateRows = (rows: string[][], headers: string[]) => {
         const boxSet = parseBoxFilter(boxFilterText)
+
+        // 1. DYNAMICALLY FIND THE INDEXES FIRST
+        let boxNumberIndex = 0
+        let trackingNumberIndex = 0
+
+        for (let i = 0; i < headers.length; i++){
+            if (!headers[i]){
+                continue;
+            }
+
+            if (headers[i].toLowerCase() === "trackingnumber" || headers[i].toLowerCase() === "tracking number") {
+                trackingNumberIndex = i
+            }
+
+            // Using the dynamic boxNumberIndex instead of hardcoded 2
+            if (headers[i].toLowerCase() === "internal account number" || headers[i].toLowerCase() === "box information") {
+                boxNumberIndex = i
+            }
+        }
+
+        // 2. FILTER USING THE DYNAMIC INDEX
         const dataRows = rows.slice(1).filter((row) => {
             if (boxSet.size === 0) return true
-            const inList = boxSet.has(String(row[2]).trim().toLowerCase())
+            // FIX: Replaced row[2] with row[boxNumberIndex]
+            const inList = boxSet.has(String(row[boxNumberIndex]).trim().toLowerCase())
             return filterMode === 'include' ? inList : !inList
         })
 
         const uniqueBoxNumbers = new Set<string>()
         const currentTrackingNumbers = []
+
+        // 3. COLLECT DATA FROM FILTERED ROWS
         for (const row of dataRows) {
-            uniqueBoxNumbers.add(row[2])
-            
-            if (bypassValidation) {
-                currentTrackingNumbers.push(row[0])
-            }
-            else{
-                currentTrackingNumbers.push(row[1])
-            }   
+            uniqueBoxNumbers.add(row[boxNumberIndex])
+            currentTrackingNumbers.push(row[trackingNumberIndex])
         }
 
         setMetadata({
@@ -135,7 +153,11 @@ export function GenerateArrival() {
                     raw: false,
                     blankrows: true,
                 })
-                aggregateRows(rows)
+                
+                const headers = rows.length > 0 ? rows[0] : []
+                // console.log("Excel Headers:", headers) // Check your console to see the array
+
+                aggregateRows(rows, headers)
             } catch (err) {
                 console.error(err)
                 setIsParsing(false)
@@ -147,7 +169,7 @@ export function GenerateArrival() {
             header: false,
             skipEmptyLines: false,
             complete: (results) => {
-                aggregateRows(results.data as string[][])
+                aggregateRows(results.data as string[][], results.data as string[])
             },
             error: (err) => {
                 console.error(err)
