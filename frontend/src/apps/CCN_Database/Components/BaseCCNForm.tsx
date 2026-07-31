@@ -58,7 +58,7 @@ export const BaseCCNForm = ({
                         type="button"
                         onClick={handleResetForm}
                     >
-                        Reset Form
+                        Reset
                     </button>
                     <button
                         className="ccn-database__search-button"

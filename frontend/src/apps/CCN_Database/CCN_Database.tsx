@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { isSupabaseConfigured } from "../../lib/supabase";
 import "./CCN_Database.css";
-import type { CcnPage, CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
+import type { CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
 import {
     formatDate,
     getCcnErrorMessage,
@@ -11,7 +11,6 @@ import {
     hasSearchFilters,
     normalizeSearchFilters,
     normalizeStatus,
-    requestCcnData
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS } from "./CCN_Database.constants";
 import { BaseCCNForm } from "./Components/BaseCCNForm";
@@ -21,15 +20,11 @@ import { ExitIcon } from "@radix-ui/react-icons";
 import { stageCcnRecords } from "./Services/stageService";
 import { saveCcnRecords } from "./Services/saveService";
 import { exportData } from "./Services/exportService";
+import { requestCcnData, useFetchData } from "./hooks/useFetchData";
 
 
 export function CCN_Database() {
-    const [data, setData] = useState<CcnRecord[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalRows, setTotalRows] = useState(0);
     const [searchDraft, setSearchDraft] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
     const [appliedSearch, setAppliedSearch] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
 
@@ -41,6 +36,9 @@ export function CCN_Database() {
 
     const [addSuccessMessage, setAddSuccessMessage] = useState<string | null>(null);
 
+    const [operationError, setOperationError] = useState<string | null>(null)
+    const [operationLoading, setOperationLoading] = useState(false)
+
 
     const dateRangeError = hasInvalidDateRange(searchDraft)
         ? "To date cannot be before From date."
@@ -49,6 +47,11 @@ export function CCN_Database() {
     const emptyTableMessage = hasAppliedSearch
         ? "No CCN found."
         : "No CCN records found.";
+
+    const { data, totalRows = 0, totalPages = 1, loading, error } = useFetchData({
+        filters: appliedSearch,
+        page: currentPage,
+    });
 
     const statusCounts = useMemo(() => {
         const counts = { released: 0, exam: 0, ccn_not_on_file: 0, rejected: 0, other: 0 };
@@ -73,37 +76,21 @@ export function CCN_Database() {
         return counts;
     }, [data]);
 
-    const applyCcnPage = useCallback((ccnPage: CcnPage) => {
-        setData(ccnPage.data);
-        setCurrentPage(ccnPage.page);
-        setTotalPages(ccnPage.totalPages);
-        setTotalRows(ccnPage.totalRows);
-    }, []);
-
-    const fetchData = useCallback(async (page = currentPage, filters = appliedSearch) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const ccnPage = await requestCcnData(page, filters);
-            applyCcnPage(ccnPage);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            setError(getCcnErrorMessage(error));
-        } finally {
-            setLoading(false);
-        }
-    }, [appliedSearch, applyCcnPage, currentPage]);
-
     const goToPage = useCallback((page: number) => {
-        const nextPage = Math.min(Math.max(page, 1), totalPages);
+        setCurrentPage((current) => {
+            const nextPage = Math.min(Math.max(page, 1), totalPages);
+            return loading || nextPage === current ? current : nextPage;
+        });
+    }, [loading, totalPages]);
 
-        if (loading || nextPage === currentPage) {
-            return;
-        }
+    const applySearch = useCallback(() => {
+        const nextSearch = normalizeSearchFilters(searchDraft);
+        if (hasInvalidDateRange(nextSearch)) return;
 
-        void fetchData(nextPage);
-    }, [currentPage, fetchData, loading, totalPages]);
+        setSearchDraft(nextSearch);
+        setAppliedSearch(nextSearch);
+        setCurrentPage(1);
+    }, [searchDraft]);
 
     const updateSearchDraft = useCallback((field: keyof CcnSearchFilters, value: string) => {
         setSearchDraft((currentSearch) => ({
@@ -115,9 +102,9 @@ export function CCN_Database() {
     const handleStagedCcnChange = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        setError(null);
+        setOperationError(null);
         setAddSuccessMessage(null);
-        setLoading(true);
+        setOperationLoading(true);
         
         try {
             const records = await stageCcnRecords({
@@ -129,9 +116,9 @@ export function CCN_Database() {
             setStagedCcnRecords(records)
         } catch (error) {
             console.log("Error Staging Records: ", error)
-            setError(getCcnErrorMessage(error));
+            setOperationError(getCcnErrorMessage(error));
         } finally {
-            setLoading(false);
+            setOperationLoading(false);
         }
     }, [awbValue, ccnValue, operationType]);
 
@@ -178,11 +165,11 @@ export function CCN_Database() {
         [updateStagedRecord]
     );
 
-    const handleResetForm = useCallback( () => {
+    const handleResetForm = useCallback(() => {
         setStagedCcnRecords([]); 
         setAwbValue(""); 
         setCcnValue(""); 
-        setError(null);
+        setOperationError(null);
         setAddSuccessMessage(null);
     }, [])
 
@@ -191,7 +178,7 @@ export function CCN_Database() {
             return;
         }
 
-        setError(null);
+        setOperationError(null);
         setAddSuccessMessage(null);
 
         try {
@@ -201,24 +188,11 @@ export function CCN_Database() {
         } catch (error) {
             setAddSuccessMessage(null)
             console.log("Error Attempting Operation: ", error)
-            setError(`${getCcnErrorMessage(error)}`)
+            setOperationError(`${getCcnErrorMessage(error)}`)
             return
         }
 
     }, [operationType, stagedCcnRecords]);
-
-    const applySearch = useCallback(() => {
-        const nextSearch = normalizeSearchFilters(searchDraft);
-
-        if (hasInvalidDateRange(nextSearch)) {
-            return;
-        }
-
-        setSearchDraft(nextSearch);
-        setAppliedSearch(nextSearch);
-        setData([]);
-        void fetchData(1, nextSearch);
-    }, [fetchData, searchDraft]);
 
     const clearSearch = useCallback(() => {
         const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);
@@ -227,35 +201,14 @@ export function CCN_Database() {
         setAppliedSearch(clearedSearch);
     }, []);
 
-    useEffect(() => {
-        let ignore = false;
-
-        const fetchInitialData = async () => {
-            try {
-                const ccnPage = await requestCcnData(1);
-
-                if (!ignore) {
-                    applyCcnPage(ccnPage);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-
-                if (!ignore) { 
-                    setError(getCcnErrorMessage(error));
-                }
-            } finally {
-                if (!ignore) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        void fetchInitialData();
-
-        return () => {
-            ignore = true;
-        };
-    }, [applyCcnPage]);
+    const handleExport = useCallback(async () => {
+        try {
+            const { data: allMatchingRows } = await requestCcnData(undefined, appliedSearch);
+            exportData(allMatchingRows, searchDraft.status as Status);
+        } catch (err) {
+            setOperationError(getCcnErrorMessage(err));
+        }
+    }, [appliedSearch, searchDraft.status]);
 
     return (
         <section className="ccn-database">
@@ -271,14 +224,14 @@ export function CCN_Database() {
 
 
                 <div className="ccn-database__actions">
-                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data} onClick={() => exportData(data, searchDraft.status as Status)}>
+                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data.length} onClick={handleExport}>
                         <ExitIcon />
                         Export
                     </button>
 
                     <OperationDialog 
                         title="Update CCN Records"
-                        disabled={loading || !isSupabaseConfigured}
+                        disabled={operationLoading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
                         renderList={ () => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}
@@ -289,19 +242,19 @@ export function CCN_Database() {
                                             handleSubmit={handleDatabaseOperation}
                                             submitButtonText="Update to Database"
                                             operationType="update"
-                                            errorMessage={error}
+                                            errorMessage={operationError}
                                             successMessage={addSuccessMessage}
                                         />)}
                         renderForm={ () => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
-                                        loading={loading}  
+                                        loading={operationLoading}  
                                         operationType="update" 
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
-                                        errorMessage={error}
+                                        errorMessage={operationError}
                                     />)}
                         setOperationType={() => {setOperationType("update")}}
                         handleResetForm={handleResetForm}
@@ -310,7 +263,7 @@ export function CCN_Database() {
 
                     <OperationDialog 
                         title="Add CCN Records"
-                        disabled={loading || !isSupabaseConfigured}
+                        disabled={loading || operationLoading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
                         renderList={() => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}
@@ -321,19 +274,19 @@ export function CCN_Database() {
                                             handleSubmit={handleDatabaseOperation}
                                             submitButtonText="Add to Database"
                                             operationType="add"
-                                            errorMessage={error}
+                                            errorMessage={operationError}
                                             successMessage={addSuccessMessage}
                                         />)}
                         renderForm={() => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
-                                        loading={loading}  
+                                        loading={operationLoading}  
                                         operationType="add" 
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
-                                        errorMessage={error}/>)}
+                                        errorMessage={operationError}/>)}
                         setOperationType={() => {setOperationType("add")}}
                         handleResetForm={handleResetForm}
                     />

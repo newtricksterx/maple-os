@@ -91,7 +91,7 @@ export const BaseStagedCCNsList = (
                         type="button"
                         onClick={handleResetForm}
                     >
-                        Reset Form
+                        Reset
                     </button>
 
                     {errorMessage ? (
