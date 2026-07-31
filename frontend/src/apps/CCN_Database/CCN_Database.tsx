@@ -235,7 +235,7 @@ export function CCN_Database() {
 
                     <OperationDialog 
                         title="Update CCN Records"
-                        disabled={operationLoading || !isSupabaseConfigured}
+                        disabled={loading || operationLoading || !isSupabaseConfigured}
                         stagedCcnRecords={stagedCcnRecords}
                         renderList={ () => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}

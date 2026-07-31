@@ -18,7 +18,8 @@ export async function requestCcnData(page?: number, filters: CcnSearchFilters = 
     let query = supabase
         .from("CCN_Registry")
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false })
+        .order("awb", { ascending: false });
 
     if (filters.from) {
         query = query.gte("created_at", toUtcDateStart(filters.from));
