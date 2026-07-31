@@ -1,5 +1,5 @@
-import type { CcnPage, CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
-import {EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE, MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
+import type { CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
+import { MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
 import { supabase } from "../../lib/supabase";
 
 export function formatDate(value?: string) {
@@ -203,65 +203,6 @@ export async function getCCNData(ccn: string): Promise<CcnRecord> {
     }
 
     return data;
-}
-
-export async function requestCcnData(page: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnPage> {
-    if (!supabase) {
-        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
-    }
-
-    const requestedPage = Math.max(page, 1);
-    const fromRow = (requestedPage - 1) * ITEMS_PER_PAGE;
-    const toRow = fromRow + ITEMS_PER_PAGE - 1;
-    let query = supabase
-        .from("CCN_Registry")
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false });
-
-    if (filters.from) {
-        query = query.gte("created_at", toUtcDateStart(filters.from));
-    }
-
-    if (filters.to) {
-        query = query.lt("created_at", toUtcDateStart(addUtcDays(filters.to, 1)));
-    }
-
-    if (filters.awb) {
-        query = query.eq("awb", filters.awb);
-    }
-
-    if (filters.ccn) {
-        query = query.eq("ccn", filters.ccn.toUpperCase());
-    }
-
-    if (filters.status) {
-        query = query.eq("status", filters.status as Status);
-    }
-
-    if (filters.released_on) {
-        query = query
-            .gte('released_on', `${filters.released_on}T00:00:00`)
-            .lte('released_on', `${filters.released_on}T23:59:59`);
-    }
-    const { data, error, count } = await query.range(fromRow, toRow);
-
-    if (error) {
-        throw error;
-    }
-
-    const totalRows = count ?? data.length;
-    const totalPages = Math.max(1, Math.ceil(totalRows / ITEMS_PER_PAGE));
-
-    if (totalRows > 0 && requestedPage > totalPages) {
-        return requestCcnData(totalPages, filters);
-    }
-
-    return {
-        data,
-        page: Math.min(requestedPage, totalPages),
-        totalRows,
-        totalPages,
-    };
 }
 
 export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {

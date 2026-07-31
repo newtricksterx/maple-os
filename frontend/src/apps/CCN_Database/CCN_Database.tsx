@@ -53,10 +53,14 @@ export function CCN_Database() {
         page: currentPage,
     });
 
+    const { data: dataNoPage } = useFetchData({
+        filters: appliedSearch
+    })
+
     const statusCounts = useMemo(() => {
         const counts = { released: 0, exam: 0, ccn_not_on_file: 0, rejected: 0, other: 0 };
 
-        data.forEach((ccn) => {
+        dataNoPage.forEach((ccn) => {
             const status = normalizeStatus(ccn.status);
 
             if (status === "Released") {
@@ -74,7 +78,7 @@ export function CCN_Database() {
         });
 
         return counts;
-    }, [data]);
+    }, [dataNoPage]);
 
     const goToPage = useCallback((page: number) => {
         setCurrentPage((current) => {
