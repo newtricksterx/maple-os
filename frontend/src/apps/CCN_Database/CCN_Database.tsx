@@ -98,7 +98,7 @@ export function CCN_Database() {
 
         setSearchDraft(nextSearch);
         setAppliedSearch(nextSearch);
-        setCurrentPage(1);
+        goToPage(1)
     }, [searchDraft]);
 
     const updateSearchDraft = useCallback((field: keyof CcnSearchFilters, value: string) => {
@@ -207,6 +207,7 @@ export function CCN_Database() {
 
         setSearchDraft(clearedSearch);
         setAppliedSearch(clearedSearch);
+        goToPage(1);
     }, []);
 
     const handleExport = useCallback(async () => {

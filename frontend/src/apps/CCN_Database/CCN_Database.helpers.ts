@@ -119,6 +119,10 @@ export async function updateCcnRecords(records: CcnRecord[]) : Promise<void> {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
+    for (const record of records) {
+        record.updated_at = getNowDate();
+    }
+
     const { error } = await supabase
         .from("CCN_Registry")
         .upsert(
