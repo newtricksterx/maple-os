@@ -41,10 +41,10 @@ export async function requestCcnData(page?: number, filters: CcnSearchFilters = 
         query = query.eq("status", filters.status as Status);
     }
 
-    if (filters.released_on) {
+    if (filters.updated_at) {
         query = query
-            .gte('released_on', `${filters.released_on}T00:00:00`)
-            .lte('released_on', `${filters.released_on}T23:59:59`);
+            .gte('released_on', `${filters.updated_at}T00:00:00`)
+            .lte('released_on', `${filters.updated_at}T23:59:59`);
     }
 
     if (page){

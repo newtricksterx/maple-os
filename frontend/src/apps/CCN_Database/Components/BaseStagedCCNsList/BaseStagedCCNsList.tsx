@@ -51,7 +51,7 @@ export const BaseStagedCCNsList = (
                                     <td>{record.ccn}</td>
                                     <td>{record.awb}</td>
                                     <td>
-                                        <select className={`dropdown dropdown-${record.status.toLowerCase()}`} value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
+                                        <select id={`status-${record.ccn}`} name={`status-${record.ccn}`} className={`dropdown`} value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
                                             <option className="released" value="Released">Released</option>
                                             <option className="exam" value="Exam">Exam</option>
                                             <option className="ccn_not_on_file" value="CCN not on file">CCN not on file</option>

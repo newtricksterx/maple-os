@@ -75,10 +75,10 @@ export function GenerateArrival() {
     const parseBoxFilter = (text: string) =>
         new Set(text.split(/[\s,]+/).map((s) => s.trim().toLowerCase()).filter(Boolean))
 
-        const aggregateRows = (rows: string[][], headers: string[]) => {
+    const aggregateRows = (rows: string[][], headers: string[]) => {
         const boxSet = parseBoxFilter(boxFilterText)
 
-        // 1. DYNAMICALLY FIND THE INDEXES FIRST
+        
         let boxNumberIndex = 0
         let trackingNumberIndex = 0
 
@@ -97,10 +97,10 @@ export function GenerateArrival() {
             }
         }
 
-        // 2. FILTER USING THE DYNAMIC INDEX
+        
         const dataRows = rows.slice(1).filter((row) => {
             if (boxSet.size === 0) return true
-            // FIX: Replaced row[2] with row[boxNumberIndex]
+            
             const inList = boxSet.has(String(row[boxNumberIndex]).trim().toLowerCase())
             return filterMode === 'include' ? inList : !inList
         })

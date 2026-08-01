@@ -180,7 +180,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      ccn_status: ["Released", "Exam", "Rejected", "Other"],
+      ccn_status: ["Released" , "Exam" , "CCN not on file" , "Rejected" , "Pending" , "King" , "Other"],
     },
   },
 } as const

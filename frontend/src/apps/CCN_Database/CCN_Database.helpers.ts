@@ -46,7 +46,7 @@ export function normalizeSearchFilters(filters: CcnSearchFilters): CcnSearchFilt
         awb: filters.awb.trim(),
         ccn: filters.ccn.trim(),
         status: filters.status,
-        released_on: filters.released_on,
+        updated_at: filters.updated_at,
     };
 }
 

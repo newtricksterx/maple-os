@@ -184,18 +184,17 @@ export function CCN_Database() {
 
         setOperationError(null);
         setAddSuccessMessage(null);
+        setOperationLoading(true);
 
         try {
-            const response = await saveCcnRecords({stagedCcnRecords, operationType});
-            setAddSuccessMessage(response.successMessage)
-
+            const response = await saveCcnRecords({ stagedCcnRecords, operationType });
+            setAddSuccessMessage(response.successMessage);
         } catch (error) {
-            setAddSuccessMessage(null)
-            console.log("Error Attempting Operation: ", error)
-            setOperationError(`${getCcnErrorMessage(error)}`)
-            return
+            console.log("Error Attempting Operation: ", error);
+            setOperationError(getCcnErrorMessage(error));
+        } finally {
+            setOperationLoading(false);
         }
-
     }, [operationType, stagedCcnRecords]);
 
     const clearSearch = useCallback(() => {
@@ -208,11 +207,24 @@ export function CCN_Database() {
     const handleExport = useCallback(async () => {
         try {
             const { data: allMatchingRows } = await requestCcnData(undefined, appliedSearch);
-            exportData(allMatchingRows, searchDraft.status as Status);
+            exportData(allMatchingRows, appliedSearch.status as Status);
         } catch (err) {
             setOperationError(getCcnErrorMessage(err));
         }
-    }, [appliedSearch, searchDraft.status]);
+    }, [appliedSearch]);
+
+    const switchOperationType = useCallback((type: OperationType) => {
+        setOperationType((current) => {
+            if (current !== type) {
+                setStagedCcnRecords([]);
+                setAwbValue("");
+                setCcnValue("");
+                setOperationError(null);
+                setAddSuccessMessage(null);
+            }
+            return type;
+        });
+    }, []);
 
     return (
         <section className="ccn-database">
@@ -260,7 +272,7 @@ export function CCN_Database() {
                                         handleResetForm={handleResetForm}
                                         errorMessage={operationError}
                                     />)}
-                        setOperationType={() => {setOperationType("update")}}
+                        setOperationType={() => {switchOperationType("update")}}
                         handleResetForm={handleResetForm}
                     />
 
@@ -291,23 +303,23 @@ export function CCN_Database() {
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
                                         errorMessage={operationError}/>)}
-                        setOperationType={() => {setOperationType("add")}}
+                        setOperationType={() => {switchOperationType("add")}}
                         handleResetForm={handleResetForm}
                     />
                 </div>
             </header>
 
             <div className="ccn-database__stats" aria-label="CCN status summary">
-                <div className="ccn-stat">
-                    <span className="ccn-stat__label">Exam</span>
+                <div className="ccn-stat bg-[rgba(245,185,85,0.12)]">
+                    <span className="ccn-stat__label text-[#f5c76b]">Exam</span>
                     <span className="ccn-stat__value">{statusCounts.exam}</span>
                 </div>
-                <div className="ccn-stat">
-                    <span className="ccn-stat__label">CCN not on file</span>
+                <div className="ccn-stat bg-[rgba(172,169,42,0.12)]">
+                    <span className="ccn-stat__label text-[#fff45d]">CCN not on file</span>
                     <span className="ccn-stat__value">{statusCounts.ccn_not_on_file}</span>
                 </div>
-                <div className="ccn-stat">
-                    <span className="ccn-stat__label">Rejected</span>
+                <div className="ccn-stat bg-[rgba(255,107,107,0.12)]">
+                    <span className="ccn-stat__label text-[#ff9a9a]">Rejected</span>
                     <span className="ccn-stat__value">{statusCounts.rejected}</span>
                 </div>
                 <div className="ccn-stat">
@@ -426,13 +438,13 @@ export function CCN_Database() {
                     </div>
 
                     <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-released_on" className="ccn-database__search-label">Released On</label>
+                        <label htmlFor="ccn-search-updated_at" className="ccn-database__search-label">Updated at</label>
                         <input
                             type="date"
-                            id="ccn-search-released_on"
+                            id="ccn-search-updated_at"
                             className="ccn-database__search-input"
-                            value={searchDraft.released_on}
-                            onChange={(event) => updateSearchDraft("released_on", event.target.value)}
+                            value={searchDraft.updated_at}
+                            onChange={(event) => updateSearchDraft("updated_at", event.target.value)}
                         />
                     </div>
                 </div>
@@ -456,7 +468,7 @@ export function CCN_Database() {
                             <th>AWB</th>
                             <th>Status</th>
                             <th>Created At</th>
-                            <th>Released On</th>
+                            <th>Updated At</th>
                             <th>Comment</th>
                         </tr>
                     </thead>
@@ -486,7 +498,7 @@ export function CCN_Database() {
                                         </span>
                                     </td>
                                     <td>{formatDate(ccn.created_at)}</td>
-                                    <td>{formatDate(ccn.released_on ?? undefined)}</td>
+                                    <td>{formatDate(ccn.updated_at)}</td>
                                     <td>{ccn.comment}</td>
                                 </tr>
                             );

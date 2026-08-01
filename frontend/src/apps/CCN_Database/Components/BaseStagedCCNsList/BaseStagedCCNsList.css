@@ -1,16 +1,15 @@
 .dropdown {
     padding: 4px;
     font-size: 15px;
-    font-weight: 700px;
+    background-color: var(--surface-2);
+    color: var(--text);
 }
 
 .comment {
     padding: 4px;
     font-size: 15px;
-    font-weight: 700px;
 }
 
 .date {
     font-size: 15px;
-    font-weight: 700px;
 }
