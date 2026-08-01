@@ -78,40 +78,48 @@ export function GenerateArrival() {
     const aggregateRows = (rows: string[][], headers: string[]) => {
         const boxSet = parseBoxFilter(boxFilterText)
 
-        
-        let boxNumberIndex = 0
-        let trackingNumberIndex = 0
+        let boxNumberIndex = -1
+        let trackingNumberIndex = -1
 
-        for (let i = 0; i < headers.length; i++){
-            if (!headers[i]){
-                continue;
+        const normalizedHeaders = headers.map((header) => String(header ?? '').trim().toLowerCase())
+
+        for (let i = 0; i < normalizedHeaders.length; i++) {
+            const headerName = normalizedHeaders[i]
+            if (!headerName) {
+                continue
             }
 
-            if (headers[i].toLowerCase() === "trackingnumber" || headers[i].toLowerCase() === "tracking number") {
+            if (headerName === 'trackingnumber' || headerName === 'tracking number') {
                 trackingNumberIndex = i
             }
 
-            // Using the dynamic boxNumberIndex instead of hardcoded 2
-            if (headers[i].toLowerCase() === "internal account number" || headers[i].toLowerCase() === "box information") {
+            if (headerName === 'internal account number' || headerName === 'box information') {
                 boxNumberIndex = i
             }
         }
 
-        
         const dataRows = rows.slice(1).filter((row) => {
             if (boxSet.size === 0) return true
-            
-            const inList = boxSet.has(String(row[boxNumberIndex]).trim().toLowerCase())
+
+            const boxValue = String(row?.[boxNumberIndex] ?? '').trim().toLowerCase()
+            const inList = boxSet.has(boxValue)
             return filterMode === 'include' ? inList : !inList
         })
 
         const uniqueBoxNumbers = new Set<string>()
-        const currentTrackingNumbers = []
+        const currentTrackingNumbers: string[] = []
 
-        // 3. COLLECT DATA FROM FILTERED ROWS
         for (const row of dataRows) {
-            uniqueBoxNumbers.add(row[boxNumberIndex])
-            currentTrackingNumbers.push(row[trackingNumberIndex])
+            const boxValue = String(row?.[boxNumberIndex] ?? '').trim()
+            const trackingValue = String(row?.[trackingNumberIndex] ?? '').trim()
+
+            if (boxValue) {
+                uniqueBoxNumbers.add(boxValue.toUpperCase())
+            }
+
+            if (trackingValue) {
+                currentTrackingNumbers.push(trackingValue.toUpperCase())
+            }
         }
 
         setMetadata({
@@ -169,7 +177,9 @@ export function GenerateArrival() {
             header: false,
             skipEmptyLines: false,
             complete: (results) => {
-                aggregateRows(results.data as string[][], results.data as string[])
+                const parsedRows = results.data as string[][]
+                const headers = parsedRows.length > 0 ? parsedRows[0] : []
+                aggregateRows(parsedRows, headers)
             },
             error: (err) => {
                 console.error(err)
