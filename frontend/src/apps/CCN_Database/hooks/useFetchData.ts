@@ -40,8 +40,8 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
 
     if (filters.updated_at) {
         query = query
-            .gte('released_on', `${filters.updated_at}T00:00:00`)
-            .lte('released_on', `${filters.updated_at}T23:59:59`);
+            .gte('updated_at', `${filters.updated_at}T00:00:00`)
+            .lte('updated_at', `${filters.updated_at}T23:59:59`);
     }
 
     /*
