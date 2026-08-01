@@ -405,6 +405,7 @@ export function CCN_Database() {
                         <input
                             type="text"
                             id="ccn-search-awb"
+                            autoComplete="off"
                             className="ccn-database__search-input"
                             value={searchDraft.awb}
                             placeholder="Search AWB"
@@ -417,6 +418,7 @@ export function CCN_Database() {
                         <input
                             type="text"
                             id="ccn-search-ccn"
+                            autoComplete="off"
                             className="ccn-database__search-input"
                             value={searchDraft.ccn}
                             placeholder="Search CCN"
