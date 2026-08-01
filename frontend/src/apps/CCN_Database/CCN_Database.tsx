@@ -12,7 +12,7 @@ import {
     normalizeSearchFilters,
     normalizeStatus,
 } from "./CCN_Database.helpers";
-import { EMPTY_SEARCH_FILTERS } from "./CCN_Database.constants";
+import { EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE } from "./CCN_Database.constants";
 import { BaseCCNForm } from "./Components/BaseCCNForm";
 import { OperationDialog } from "./Components/OperationDialog";
 import { BaseStagedCCNsList } from "./Components/BaseStagedCCNsList/BaseStagedCCNsList";
@@ -25,6 +25,9 @@ import { requestCcnData, useFetchData } from "./hooks/useFetchData";
 
 export function CCN_Database() {
     const [currentPage, setCurrentPage] = useState(1);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+
     const [searchDraft, setSearchDraft] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
     const [appliedSearch, setAppliedSearch] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
 
@@ -48,19 +51,17 @@ export function CCN_Database() {
         ? "No CCN found."
         : "No CCN records found.";
 
-    const { data, totalRows = 0, totalPages = 1, loading, error } = useFetchData({
-        filters: appliedSearch,
-        page: currentPage,
+    const { data, loading, error } = useFetchData({
+        filters: appliedSearch
     });
 
-    const { data: dataNoPage } = useFetchData({
-        filters: appliedSearch
-    })
+    const totalRows = useMemo(() => data.length, [data]);
+    const totalPages = useMemo(() => Math.max(Math.ceil(totalRows / 10), 1), [totalRows]);
 
     const statusCounts = useMemo(() => {
         const counts = { released: 0, exam: 0, ccn_not_on_file: 0, rejected: 0, other: 0 };
 
-        dataNoPage.forEach((ccn) => {
+        data.forEach((ccn) => {
             const status = normalizeStatus(ccn.status);
 
             if (status === "Released") {
@@ -78,11 +79,15 @@ export function CCN_Database() {
         });
 
         return counts;
-    }, [dataNoPage]);
+    }, [data]);
 
     const goToPage = useCallback((page: number) => {
         setCurrentPage((current) => {
             const nextPage = Math.min(Math.max(page, 1), totalPages);
+            setCurrentIndex(() => {
+                const nextIndex = (nextPage - 1) * ITEMS_PER_PAGE;
+                return nextIndex;
+            });
             return loading || nextPage === current ? current : nextPage;
         });
     }, [loading, totalPages]);
@@ -206,7 +211,7 @@ export function CCN_Database() {
 
     const handleExport = useCallback(async () => {
         try {
-            const { data: allMatchingRows } = await requestCcnData(undefined, appliedSearch);
+            const { data: allMatchingRows } = await requestCcnData(appliedSearch);
             exportData(allMatchingRows, appliedSearch.status as Status);
         } catch (err) {
             setOperationError(getCcnErrorMessage(err));
@@ -485,7 +490,7 @@ export function CCN_Database() {
                             </tr>
                         ) : null}
 
-                        {data.map((ccn, index) => {
+                        {data.slice(currentIndex, currentIndex + ITEMS_PER_PAGE).map((ccn, index) => {
                             const status = normalizeStatus(ccn.status);
 
                             return (

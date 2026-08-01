@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import type { CcnRecord, CcnSearchFilters, Status } from "../CCN_Database.types";
 import { supabase } from "../../../lib/supabase";
-import { EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE, MISSING_SUPABASE_CONFIG_MESSAGE } from "../CCN_Database.constants";
+import { EMPTY_SEARCH_FILTERS, MISSING_SUPABASE_CONFIG_MESSAGE } from "../CCN_Database.constants";
 import { addUtcDays, getCcnErrorMessage, toUtcDateStart } from "../CCN_Database.helpers";
 
 interface CcnData {
     data: CcnRecord[]
-    page?: number;
-    totalRows?: number;
-    totalPages?: number;
 }
 
-export async function requestCcnData(page?: number, filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnData> {
+export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnData> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
@@ -47,6 +44,8 @@ export async function requestCcnData(page?: number, filters: CcnSearchFilters = 
             .lte('released_on', `${filters.updated_at}T23:59:59`);
     }
 
+    /*
+
     if (page){
         const requestedPage = Math.max(page, 1);
         const fromRow = (requestedPage - 1) * ITEMS_PER_PAGE;
@@ -73,6 +72,8 @@ export async function requestCcnData(page?: number, filters: CcnSearchFilters = 
         };
     }
 
+    */
+
     const { data, error } = await query;
 
     if (error) {
@@ -98,7 +99,6 @@ interface FetchDataOptions {
 
 export function useFetchData({ filters, page }: FetchDataOptions): FetchDataResult {
     const [data, setData] = useState<CcnRecord[]>([]);
-    const [pageInfo, setPageInfo] = useState<Pick<CcnData, "page" | "totalRows" | "totalPages">>({});
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -112,15 +112,10 @@ export function useFetchData({ filters, page }: FetchDataOptions): FetchDataResu
             setError(null);
 
             try {
-                const response = await requestCcnData(page, filters);
+                const response = await requestCcnData(filters);
 
                 if (!ignore) {
                     setData(response.data);
-                    setPageInfo({
-                        page: response.page,
-                        totalRows: response.totalRows,
-                        totalPages: response.totalPages,
-                    });
                 }
             } catch (err) {
                 console.error("Error fetching data:", err);
@@ -145,7 +140,6 @@ export function useFetchData({ filters, page }: FetchDataOptions): FetchDataResu
 
     return {
         data,
-        ...pageInfo,
         loading,
         error,
     };
