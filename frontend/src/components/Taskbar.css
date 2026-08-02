@@ -70,7 +70,24 @@
 }
 
 .taskbar__win-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.taskbar__win-icon-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.taskbar__win-icon-glyph {
   font-size: 15px;
+  line-height: 1;
 }
 
 .taskbar__win-title {

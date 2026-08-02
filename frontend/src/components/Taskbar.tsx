@@ -82,7 +82,13 @@ export function Taskbar({ wm }: TaskbarProps) {
               }
               onClick={() => handleClick(w.id, w.minimized)}
             >
-              <span className="taskbar__win-icon">{app.icon}</span>
+              <span className="taskbar__win-icon">
+                {app.imgUrl ? (
+                  <img className="taskbar__win-icon-image" src={app.imgUrl} alt={app.imgAlt} />
+                ) : (
+                  <span className="taskbar__win-icon-glyph">{app.imgAlt}</span>
+                )}
+              </span>
               <span className="taskbar__win-title">{app.title}</span>
             </button>
           )
