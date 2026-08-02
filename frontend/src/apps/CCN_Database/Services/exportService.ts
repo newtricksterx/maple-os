@@ -24,7 +24,7 @@ export function exportData(ccns: CcnRecord[], status: Status) {
     const rows: string[] = [];
 
     mappedCcns.forEach((values, key) => {
-        rows.push(escapeCsvField(key));
+        rows.push(`"${escapeCsvField(key)}, ${values.length}"`);
         values.forEach((value) => rows.push(escapeCsvField(value)));
         rows.push("");
     });
