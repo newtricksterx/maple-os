@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { isSupabaseConfigured } from "../../lib/supabase";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { isSupabaseConfigured, supabase } from "../../lib/supabase";
 import "./CCN_Database.css";
 import type { CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
 import {
@@ -27,6 +27,8 @@ export function CCN_Database() {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    const [refreshToggle, setRefreshToggle] = useState(false);
+
 
     const [searchDraft, setSearchDraft] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
     const [appliedSearch, setAppliedSearch] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
@@ -52,8 +54,30 @@ export function CCN_Database() {
         : "No CCN records found.";
 
     const { data, loading, error } = useFetchData({
-        filters: appliedSearch
+        filters: appliedSearch,
+        refreshToggle: refreshToggle
     });
+
+    useEffect(() => {
+        if (!isSupabaseConfigured || !supabase) return;
+
+        const client = supabase; // narrowed to non-null, stays that way
+
+        const channel = client
+        .channel("ccn_registry_changes")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "CCN_Registry" },
+            () => {
+                setRefreshToggle((prev) => !prev);
+            }
+        )
+        .subscribe();
+
+        return () => {
+            client.removeChannel(channel);
+        };
+    }, []);
 
     const totalRows = useMemo(() => data.length, [data]);
     const totalPages = useMemo(() => Math.max(Math.ceil(totalRows / 10), 1), [totalRows]);
@@ -99,7 +123,7 @@ export function CCN_Database() {
         setSearchDraft(nextSearch);
         setAppliedSearch(nextSearch);
         goToPage(1)
-    }, [searchDraft]);
+    }, [goToPage, searchDraft]);
 
     const updateSearchDraft = useCallback((field: keyof CcnSearchFilters, value: string) => {
         setSearchDraft((currentSearch) => ({
@@ -199,6 +223,7 @@ export function CCN_Database() {
             setOperationError(getCcnErrorMessage(error));
         } finally {
             setOperationLoading(false);
+            setRefreshToggle((prev) => !prev);
         }
     }, [operationType, stagedCcnRecords]);
 
@@ -208,7 +233,7 @@ export function CCN_Database() {
         setSearchDraft(clearedSearch);
         setAppliedSearch(clearedSearch);
         goToPage(1);
-    }, []);
+    }, [goToPage]);
 
     const handleExport = useCallback(async () => {
         try {

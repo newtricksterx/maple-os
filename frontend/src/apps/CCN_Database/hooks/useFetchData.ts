@@ -5,7 +5,7 @@ import { EMPTY_SEARCH_FILTERS, MISSING_SUPABASE_CONFIG_MESSAGE } from "../CCN_Da
 import { addUtcDays, getCcnErrorMessage, toUtcDateStart } from "../CCN_Database.helpers";
 
 interface CcnData {
-    data: CcnRecord[]
+    data: CcnRecord[];
 }
 
 export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnData> {
@@ -94,10 +94,10 @@ interface FetchDataResult {
 
 interface FetchDataOptions {
     filters: CcnSearchFilters;
-    page?: number;
+    refreshToggle: boolean
 }
 
-export function useFetchData({ filters, page }: FetchDataOptions): FetchDataResult {
+export function useFetchData({ filters, refreshToggle }: FetchDataOptions): FetchDataResult {
     const [data, setData] = useState<CcnRecord[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -136,7 +136,7 @@ export function useFetchData({ filters, page }: FetchDataOptions): FetchDataResu
         };
         // filtersKey stands in for filters to avoid refiring on new-but-equal object references
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filtersKey, page]);
+    }, [filtersKey, refreshToggle]);
 
     return {
         data,
