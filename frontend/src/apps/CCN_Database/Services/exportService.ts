@@ -29,6 +29,8 @@ export function exportData(ccns: CcnRecord[], status: Status) {
         rows.push("");
     });
 
+    rows.push(`"Total CCNs: ${ccns.length}"`);
+
     const csvContent = "\uFEFF" + rows.join("\r\n"); // BOM helps WPS/Excel detect UTF-8 correctly
     const file = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(file);
