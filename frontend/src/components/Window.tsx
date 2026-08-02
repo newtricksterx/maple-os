@@ -160,6 +160,7 @@ export function Window({ win, active, wm }: WindowProps) {
         <span className="window__title">
           {app.title}
         </span>
+        <span className="window__title-spacer" aria-hidden="true" />
       </div>
       <div className="window__body">
         <Body />

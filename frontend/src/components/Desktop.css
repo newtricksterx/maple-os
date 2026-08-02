@@ -39,7 +39,19 @@
 
 .desktop-icon__glyph {
   font-size: 30px;
-  line-height: 1;
+  align-items: center;
+}
+
+.desktop-icon__image {
+  display: block;
+  width: 40px;
+  height: 40px;
+  min-width: 36px;
+  max-width: 40px;
+  min-height: 36px;
+  max-height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .desktop-icon__label {

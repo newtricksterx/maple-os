@@ -5,7 +5,9 @@ export type AppId = string
 export interface AppDefinition {
   id: AppId
   title: string
-  icon: string // emoji / glyph (no image assets needed yet)
+  // icon: string // emoji / glyph (no image assets needed yet)
+  imgUrl: string
+  imgAlt: string
   component: ComponentType
   defaultSize?: { width: number; height: number }
 }

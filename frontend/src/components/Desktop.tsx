@@ -12,7 +12,7 @@ export function Desktop({ onOpen }: DesktopProps) {
     <div className="desktop">
       <div className="desktop__icons">
         {APPS.map((app) => (
-          <DesktopIcon key={app.id} app={app} onOpen={() => onOpen(app.id)} />
+          <DesktopIcon key={app.id} app={app} imgUrl={app.imgUrl} imgAlt={app.imgAlt} onOpen={() => onOpen(app.id)} />
         ))}
       </div>
     </div>
