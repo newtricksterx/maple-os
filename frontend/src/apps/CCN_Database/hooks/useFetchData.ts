@@ -27,11 +27,11 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
     }
 
     if (filters.awb) {
-        query = query.eq("awb", filters.awb);
+        query = query.ilike("awb", `%${filters.awb}%`);
     }
 
     if (filters.ccn) {
-        query = query.eq("ccn", filters.ccn.toUpperCase());
+        query = query.ilike("ccn", `%${filters.ccn.toUpperCase()}%`);
     }
 
     if (filters.status) {
