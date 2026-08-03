@@ -5,7 +5,6 @@ import type { CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_D
 import {
     formatDate,
     getCcnErrorMessage,
-    getNowDate,
     getStatusClassName,
     hasInvalidDateRange,
     hasSearchFilters,
