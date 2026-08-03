@@ -103,10 +103,6 @@ export async function addCcnRecord(record: CcnRecord): Promise<void> {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
-    if (record.status == "Released"){
-        record.released_on = getNowDate()
-    }
-
     const { error } = await supabase.from("CCN_Registry").insert(record);
     
     if (error) {
@@ -214,7 +210,6 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
         ccn,
         awb,
         comment: "",
-        released_on: null,
         status: "Exam",
         created_at: getNowDate(),
         updated_at: getNowDate(),

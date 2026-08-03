@@ -77,8 +77,99 @@
     color: var(--text-muted);
 }
 
+.intersect__duplicates-summary {
+    padding: 12px 14px;
+    border: 1px solid rgba(94, 158, 255, 0.2);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(94, 158, 255, 0.08), rgba(74, 222, 128, 0.08));
+}
+
+.intersect__duplicates-summary__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.intersect__duplicates-summary__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.intersect__duplicates-summary__subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.intersect__duplicates-summary__grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.intersect__duplicates-summary__panel {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+}
+
+.intersect__duplicates-summary__panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.intersect__duplicates-summary__panel-count {
+    color: var(--accent);
+}
+
+.intersect__duplicates-summary__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.intersect__duplicates-summary__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(94, 158, 255, 0.12);
+}
+
+.intersect__duplicates-summary__item-count {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.intersect__duplicates-summary__empty {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
 /* Results */
 .intersect__results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.intersect__result-groups {
     display: flex;
     flex-direction: column;
     gap: 10px;

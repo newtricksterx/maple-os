@@ -178,10 +178,6 @@ export function CCN_Database() {
             updateStagedRecord(ccn, (record) => ({
                 ...record,
                 status,
-                released_on:
-                    status === "Released"
-                        ? getNowDate()
-                        : null,
             }));
         },
         [updateStagedRecord]

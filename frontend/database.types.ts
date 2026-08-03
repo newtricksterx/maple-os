@@ -20,7 +20,6 @@ export type Database = {
           ccn: string
           comment: string | null
           created_at: string
-          released_on: string | null
           status: Database["public"]["Enums"]["ccn_status"]
           updated_at: string
         }
@@ -29,7 +28,6 @@ export type Database = {
           ccn: string
           comment?: string | null
           created_at: string
-          released_on?: string | null
           status?: Database["public"]["Enums"]["ccn_status"]
           updated_at: string
         }
@@ -38,7 +36,6 @@ export type Database = {
           ccn?: string
           comment?: string | null
           created_at?: string
-          released_on?: string | null
           status?: Database["public"]["Enums"]["ccn_status"]
           updated_at?: string
         }

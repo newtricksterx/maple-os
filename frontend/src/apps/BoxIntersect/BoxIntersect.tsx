@@ -1,28 +1,55 @@
 import { useMemo, useState } from 'react'
 import './BoxIntersect.css'
 
-function parseList(text: string): string[] {
+interface ListInfo {
+    uniqueValues: string[];
+    duplicateValues: Map<string, number>
+}
+
+function parseList(text: string): ListInfo {
     const seen = new Set<string>()
-    const values: string[] = []
+
+    const uniqueValues: string[] = []
+    const duplicateValues: Map<string, number> = new Map<string, number>()
+
     for (const token of text.split(/[\s,]+/)) {
         const value = token.trim()
         const key = value.toLowerCase()
-        if (!value || seen.has(key)) continue
+
+        if (!value) continue
+
+        if (key && seen.has(key)) {
+            
+            duplicateValues.set(key, (duplicateValues.get(key) ?? 1) + 1)
+
+            continue
+
+        }
+
         seen.add(key)
-        values.push(value)
+        uniqueValues.push(value)
     }
-    return values
+
+    return {
+        uniqueValues,
+        duplicateValues
+    }
 }
 
 export function BoxIntersect() {
     const [listAText, setListAText] = useState('')
     const [listBText, setListBText] = useState('')
 
-    const { listA, listB, both, onlyA, onlyB } = useMemo(() => {
-        const listA = parseList(listAText)
-        const listB = parseList(listBText)
+    const { listA, listB, both, onlyA, onlyB, duplicateA, duplicateB } = useMemo(() => {
+        const parsedListA = parseList(listAText)
+        const parsedListB = parseList(listBText)
+
+        const listA = parsedListA.uniqueValues
+        const listB = parsedListB.uniqueValues
         const keysB = new Set(listB.map((v) => v.toLowerCase()))
         const keysA = new Set(listA.map((v) => v.toLowerCase()))
+        const duplicateA = parsedListA.duplicateValues
+        const duplicateB = parsedListB.duplicateValues
 
         return {
             listA,
@@ -30,6 +57,8 @@ export function BoxIntersect() {
             both: listA.filter((v) => keysB.has(v.toLowerCase())),
             onlyA: listA.filter((v) => !keysB.has(v.toLowerCase())),
             onlyB: listB.filter((v) => !keysA.has(v.toLowerCase())),
+            duplicateA,
+            duplicateB
         }
     }, [listAText, listBText])
 
@@ -49,12 +78,33 @@ export function BoxIntersect() {
         </div>
     )
 
+    const DuplicateSummary = (title: string, duplicates: Map<string, number>) => (
+        <div className='intersect__duplicates-summary__panel'>
+            <div className='intersect__duplicates-summary__panel-header'>
+                <span>{title}</span>
+                <span className='intersect__duplicates-summary__panel-count'>{duplicates.size}</span>
+            </div>
+            {duplicates.size > 0 ? (
+                <ul className='intersect__duplicates-summary__list'>
+                    {Array.from(duplicates.entries()).map(([value, count]) => (
+                        <li key={value} className='intersect__duplicates-summary__item'>
+                            <span>{value}</span>
+                            <span className='intersect__duplicates-summary__item-count'>× {count}</span>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className='intersect__duplicates-summary__empty'>No duplicates</p>
+            )}
+        </div>
+    )
+
     return (
         <div className='intersect'>
             <header className='intersect__header'>
                 <h2 className='intersect__title'>Box Intersect</h2>
                 <p className='intersect__subtitle'>
-                    Paste two lists of box numbers to see which values appear in both.
+                    Paste two lists of box numbers.
                 </p>
             </header>
 
@@ -89,16 +139,31 @@ export function BoxIntersect() {
             </div>
 
             <span className='intersect__hint'>
-                Separate values with spaces, commas, or new lines. Duplicates are ignored.
+                Separate values with spaces, commas, or new lines.
             </span>
 
             {hasInput && (
                 <div className='intersect__results'>
-                    {ResultGroup('In both lists', both, 'match')}
-                    {ResultGroup('Only in A', onlyA, 'diff')}
-                    {ResultGroup('Only in B', onlyB, 'diff')}   
+                    <div className='intersect__duplicates-summary'>
+                        <div className='intersect__duplicates-summary__header'>
+                            <span className='intersect__duplicates-summary__title'>Duplicates</span>
+                            <span className='intersect__duplicates-summary__subtitle'>Counts per list</span>
+                        </div>
+
+                        <div className='intersect__duplicates-summary__grid'>
+                            {DuplicateSummary('List A', duplicateA)}
+                            {DuplicateSummary('List B', duplicateB)}
+                        </div>
+                    </div>
+
+                    <div className='intersect__result-groups'>
+                        {ResultGroup('In both lists', both, 'match')}
+                        {ResultGroup('Only in A', onlyA, 'diff')}
+                        {ResultGroup('Only in B', onlyB, 'diff')}
+                    </div>
                 </div>
             )}
+            
         </div>
     )
 }

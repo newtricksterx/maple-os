@@ -40,10 +40,6 @@ export async function stageCcnRecords({
             awb: record.awb,
             status: normalizeStatus("Released"),
             comment: record.comment ?? "",
-            released_on: new Date().toLocaleString(
-                "en-US",
-                { timeZone: "America/New_York" }
-            )
         }));
     }
 
