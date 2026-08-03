@@ -24,10 +24,12 @@ export function exportData(ccns: CcnRecord[], status: Status) {
     const rows: string[] = [];
 
     mappedCcns.forEach((values, key) => {
-        rows.push(escapeCsvField(key));
+        rows.push(`"${escapeCsvField(key)}, ${values.length} CCN${values.length === 1 ? "" : "s"}"`);
         values.forEach((value) => rows.push(escapeCsvField(value)));
         rows.push("");
     });
+
+    rows.push(`"Total CCNs: ${ccns.length} CCN${ccns.length === 1 ? "" : "s"}"`);
 
     const csvContent = "\uFEFF" + rows.join("\r\n"); // BOM helps WPS/Excel detect UTF-8 correctly
     const file = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
