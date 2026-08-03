@@ -58,17 +58,6 @@ export function hasSearchFilters(filters: CcnSearchFilters) {
     return Object.values(filters).some(Boolean);
 }
 
-export function toUtcDateStart(value: string) {
-    return `${value}T00:00:00.000Z`;
-}
-
-export function addUtcDays(value: string, days: number) {
-    const [year, month, day] = value.split("-").map(Number);
-    const date = new Date(Date.UTC(year, month - 1, day + days));
-
-    return date.toISOString().split("T")[0];
-}
-
 export function getCcnErrorMessage(error: unknown) {
     if (error instanceof Error && error.message === MISSING_SUPABASE_CONFIG_MESSAGE) {
         return MISSING_SUPABASE_CONFIG_MESSAGE;
@@ -98,19 +87,7 @@ export function getCcnErrorMessage(error: unknown) {
     return "Unable to load CCN records right now.";
 }
 
-export async function addCcnRecord(record: CcnRecord): Promise<void> {
-    if (!supabase) {
-        throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
-    }
-
-    const { error } = await supabase.from("CCN_Registry").insert(record);
-    
-    if (error) {
-        throw error;
-    }
-}
-
-export async function updateCcnRecords(records: CcnRecord[]) : Promise<void> {
+export async function saveCcnRecords(records: CcnRecord[]) : Promise<void> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }

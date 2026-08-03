@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
 import "./CCN_Database.css";
 import type { CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
@@ -42,7 +42,9 @@ export function CCN_Database() {
 
     const [operationError, setOperationError] = useState<string | null>(null)
     const [operationLoading, setOperationLoading] = useState(false)
-    const channelId = useRef(`ccn_registry_changes_${Math.random().toString(36).slice(2)}`)
+
+    const uniqueId = useId();
+    const channelId = useRef(`ccn_registry_changes_${uniqueId}`)
 
     const dateRangeError = hasInvalidDateRange(searchDraft)
         ? "To date cannot be before From date."
@@ -79,7 +81,7 @@ export function CCN_Database() {
     }, []);
 
     const totalRows = useMemo(() => data.length, [data]);
-    const totalPages = useMemo(() => Math.max(Math.ceil(totalRows / 10), 1), [totalRows]);
+    const totalPages = useMemo(() => Math.max(Math.ceil(totalRows / ITEMS_PER_PAGE), 1), [totalRows]);
 
     const statusCounts = useMemo(() => {
         const counts = { released: 0, exam: 0, ccn_not_on_file: 0, rejected: 0, other: 0 };
@@ -211,7 +213,7 @@ export function CCN_Database() {
         setOperationLoading(true);
 
         try {
-            const response = await saveCcnRecords({ stagedCcnRecords, operationType });
+            const response = await saveCcnRecords(stagedCcnRecords);
             setAddSuccessMessage(response.successMessage);
         } catch (error) {
             console.log("Error Attempting Operation: ", error);
@@ -219,8 +221,11 @@ export function CCN_Database() {
         } finally {
             setOperationLoading(false);
             setRefreshToggle((prev) => !prev);
+            goToPage(1)
         }
-    }, [operationType, stagedCcnRecords]);
+
+        
+    }, [goToPage, stagedCcnRecords]);
 
     const clearSearch = useCallback(() => {
         const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);

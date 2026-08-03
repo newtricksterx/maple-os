@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { CcnRecord, CcnSearchFilters, Status } from "../CCN_Database.types";
 import { supabase } from "../../../lib/supabase";
 import { EMPTY_SEARCH_FILTERS, MISSING_SUPABASE_CONFIG_MESSAGE } from "../CCN_Database.constants";
-import { addUtcDays, getCcnErrorMessage, toUtcDateStart } from "../CCN_Database.helpers";
+import { getCcnErrorMessage } from "../CCN_Database.helpers";
 
 interface CcnData {
     data: CcnRecord[];
@@ -19,11 +19,11 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
         .order("awb", { ascending: false });
 
     if (filters.from) {
-        query = query.gte("created_at", toUtcDateStart(filters.from));
+        query = query.gte("created_at", `${filters.from}T00:00:00`);
     }
 
     if (filters.to) {
-        query = query.lt("created_at", toUtcDateStart(addUtcDays(filters.to, 1)));
+        query = query.lt("created_at", `${filters.to}T23:59:59`);
     }
 
     if (filters.awb) {

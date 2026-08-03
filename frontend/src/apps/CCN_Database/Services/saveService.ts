@@ -1,26 +1,12 @@
-import { addCcnRecord, updateCcnRecords } from "../CCN_Database.helpers";
-import type { CcnRecord, OperationType } from "../CCN_Database.types";
-
-interface SaveCcnRequest {
-    stagedCcnRecords: CcnRecord[];
-    operationType: OperationType;
-}
+import { saveCcnRecords as saveCcnRecordsHelper } from "../CCN_Database.helpers";
+import type { CcnRecord  } from "../CCN_Database.types";
 
 interface SaveCcnResponse {
     successMessage : string;
 }
 
-export async function saveCcnRecords({ stagedCcnRecords, operationType }: SaveCcnRequest) : Promise<SaveCcnResponse> {
+export async function saveCcnRecords(stagedCcnRecords: CcnRecord[]): Promise<SaveCcnResponse> {
+    await saveCcnRecordsHelper(stagedCcnRecords);
 
-    if (operationType === "update") {
-        await updateCcnRecords(stagedCcnRecords);
-
-        return { successMessage: `Successfully updated ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} in the database.`};
-    }
-
-    for (const record of stagedCcnRecords) {
-        await addCcnRecord(record);
-    }
-
-    return { successMessage: `Successfully added ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} to the database.`};
+    return { successMessage: `Successfully saved ${stagedCcnRecords.length} CCN${stagedCcnRecords.length === 1 ? "" : "s"} in the database.` };
 }
