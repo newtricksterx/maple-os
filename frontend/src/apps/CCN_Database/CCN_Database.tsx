@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
 import "./CCN_Database.css";
 import type { CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
@@ -43,7 +43,7 @@ export function CCN_Database() {
 
     const [operationError, setOperationError] = useState<string | null>(null)
     const [operationLoading, setOperationLoading] = useState(false)
-
+    const channelId = useRef(`ccn_registry_changes_${Math.random().toString(36).slice(2)}`)
 
     const dateRangeError = hasInvalidDateRange(searchDraft)
         ? "To date cannot be before From date."
@@ -64,7 +64,7 @@ export function CCN_Database() {
         const client = supabase; // narrowed to non-null, stays that way
 
         const channel = client
-        .channel("ccn_registry_changes")
+        .channel(channelId.current)
         .on(
             "postgres_changes",
             { event: "*", schema: "public", table: "CCN_Registry" },
