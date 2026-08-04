@@ -71,12 +71,19 @@ export function BoxIntersect() {
                 <span className='intersect-group__count'>{values.length}</span>
             </div>
             {values.length > 0 ? (
-                <p className='intersect-group__values'>{values.join(' ')}</p>
+                <p className='intersect-group__values'>
+                    {values.map((val, index) => (
+                        <span key={index} className='intersect-group__value-item'>
+                            {val}
+                        </span>
+                    ))}
+                </p>
             ) : (
                 <p className='intersect-group__empty'>None</p>
             )}
         </div>
     )
+
 
     const DuplicateSummary = (title: string, duplicates: Map<string, number>) => (
         <div className='intersect__duplicates-summary__panel'>
@@ -142,27 +149,29 @@ export function BoxIntersect() {
                 Separate values with spaces, commas, or new lines.
             </span>
 
-            {hasInput && (
-                <div className='intersect__results'>
-                    <div className='intersect__duplicates-summary'>
-                        <div className='intersect__duplicates-summary__header'>
-                            <span className='intersect__duplicates-summary__title'>Duplicates</span>
-                            <span className='intersect__duplicates-summary__subtitle'>Counts per list</span>
-                        </div>
 
-                        <div className='intersect__duplicates-summary__grid'>
-                            {DuplicateSummary('List A', duplicateA)}
-                            {DuplicateSummary('List B', duplicateB)}
-                        </div>
+            <div className='intersect__results'>
+                <div className='intersect__duplicates-summary'>
+                    <div className='intersect__duplicates-summary__header'>
+                        <span className='intersect__duplicates-summary__title'>Duplicates</span>
+                        <span className='intersect__duplicates-summary__subtitle'>Counts per list</span>
                     </div>
 
+                    <div className='intersect__duplicates-summary__grid'>
+                        {DuplicateSummary('List A', duplicateA)}
+                        {DuplicateSummary('List B', duplicateB)}
+                    </div>
+                </div>
+
+                { hasInput && (
                     <div className='intersect__result-groups'>
                         {ResultGroup('In both lists', both, 'match')}
                         {ResultGroup('Only in A', onlyA, 'diff')}
                         {ResultGroup('Only in B', onlyB, 'diff')}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
+            
             
         </div>
     )

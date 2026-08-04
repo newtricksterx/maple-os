@@ -213,9 +213,12 @@
 .intersect-group__values {
     margin: 8px 0 0;
     font-size: 13px;
-    font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-family: "SF Pro Rounded";
     color: var(--text);
     word-break: break-word;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Adjust this value to match your desired word spacing */
 }
 
 .intersect-group__empty {
