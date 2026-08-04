@@ -41,17 +41,18 @@ export function getStatusClassName(status: Status) {
 
 export function normalizeSearchFilters(filters: CcnSearchFilters): CcnSearchFilters {
     return {
-        from: filters.from,
-        to: filters.to,
         awb: filters.awb.trim(),
         ccn: filters.ccn.trim(),
         status: filters.status,
+        created_at: filters.created_at,
         updated_at: filters.updated_at,
     };
 }
 
 export function hasInvalidDateRange(filters: CcnSearchFilters) {
-    return Boolean(filters.from && filters.to && filters.to < filters.from);
+    return Boolean(filters.created_at.from && filters.created_at.to && filters.created_at.to < filters.created_at.from) ||
+           Boolean(filters.updated_at.from && filters.updated_at.to && filters.updated_at.to < filters.updated_at.from);
+;
 }
 
 export function hasSearchFilters(filters: CcnSearchFilters) {

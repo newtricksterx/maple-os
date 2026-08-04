@@ -16,14 +16,15 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
         .from("CCN_Registry")
         .select("*", { count: "exact" })
         .order("updated_at", { ascending: false })
-        .order("awb", { ascending: false });
+        .order("awb", { ascending: false })
+        .order("ccn", { ascending: false });
 
-    if (filters.from) {
-        query = query.gte("created_at", `${filters.from}T00:00:00`);
+    if (filters.created_at.from) {
+        query = query.gte("created_at", `${filters.created_at.from}T00:00:00`);
     }
 
-    if (filters.to) {
-        query = query.lt("created_at", `${filters.to}T23:59:59`);
+    if (filters.created_at.to) {
+        query = query.lt("created_at", `${filters.created_at.to}T23:59:59`);
     }
 
     if (filters.awb) {
@@ -38,12 +39,13 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
         query = query.eq("status", filters.status as Status);
     }
 
-    if (filters.updated_at) {
-        query = query
-            .gte('updated_at', `${filters.updated_at}T00:00:00`)
-            .lte('updated_at', `${filters.updated_at}T23:59:59`);
+    if (filters.updated_at.from) {
+        query = query.gte("updated_at", `${filters.updated_at.from}T00:00:00`);
     }
 
+    if (filters.updated_at.to) {
+        query = query.lt("updated_at", `${filters.updated_at.to}T23:59:59`);
+    }
     /*
 
     if (page){

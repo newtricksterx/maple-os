@@ -133,6 +133,19 @@ export function CCN_Database() {
         }));
     }, []);
 
+    const updateDateRangeDraft = useCallback(
+        (field: "created_at" | "updated_at", subfield: "from" | "to", value: string) => {
+            setSearchDraft((currentSearch) => ({
+                ...currentSearch,
+                [field]: {
+                    ...currentSearch[field],
+                    [subfield]: value,
+                },
+            }));
+        },
+        []
+    );
+
     const handleStagedCcnChange = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -398,30 +411,15 @@ export function CCN_Database() {
 
                 <div className="ccn-database__search-controls">
                     <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-date-from" className="ccn-database__search-label">From</label>
+                        <label htmlFor="ccn-search-ccn" className="ccn-database__search-label">CCN</label>
                         <input
-                            type="date"
-                            id="ccn-search-date-from"
+                            type="text"
+                            id="ccn-search-ccn"
+                            autoComplete="off"
                             className="ccn-database__search-input"
-                            value={searchDraft.from}
-                            max={searchDraft.to || undefined}
-                            aria-invalid={Boolean(dateRangeError)}
-                            aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
-                            onChange={(event) => updateSearchDraft("from", event.target.value)}
-                        />
-                    </div>
-
-                    <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-date-to" className="ccn-database__search-label">To</label>
-                        <input
-                            type="date"
-                            id="ccn-search-date-to"
-                            className="ccn-database__search-input"
-                            value={searchDraft.to}
-                            min={searchDraft.from || undefined}
-                            aria-invalid={Boolean(dateRangeError)}
-                            aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
-                            onChange={(event) => updateSearchDraft("to", event.target.value)}
+                            value={searchDraft.ccn}
+                            placeholder="Search CCN"
+                            onChange={(event) => updateSearchDraft("ccn", event.target.value)}
                         />
                     </div>
 
@@ -438,24 +436,12 @@ export function CCN_Database() {
                         />
                     </div>
 
-                    <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-ccn" className="ccn-database__search-label">CCN</label>
-                        <input
-                            type="text"
-                            id="ccn-search-ccn"
-                            autoComplete="off"
-                            className="ccn-database__search-input"
-                            value={searchDraft.ccn}
-                            placeholder="Search CCN"
-                            onChange={(event) => updateSearchDraft("ccn", event.target.value)}
-                        />
-                    </div>
-
+                    
                     <div className="ccn-database__search-field">
                         <label htmlFor="ccn-search-status" className="ccn-database__search-label">Status</label>
                         <select
                             id="ccn-search-status"
-                            className="ccn-database__search-input"
+                            className="ccn-database__search-select"
                             value={searchDraft.status}
                             onChange={(event) => updateSearchDraft("status", event.target.value)}
                         >
@@ -471,14 +457,57 @@ export function CCN_Database() {
                     </div>
 
                     <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-updated_at" className="ccn-database__search-label">Updated at</label>
-                        <input
-                            type="date"
-                            id="ccn-search-updated_at"
-                            className="ccn-database__search-input"
-                            value={searchDraft.updated_at}
-                            onChange={(event) => updateSearchDraft("updated_at", event.target.value)}
-                        />
+                        <label htmlFor="ccn-search-created-from" className="ccn-database__search-label">Created At</label>
+                        <div className="ccn-database__search-field-dates">
+                            <input
+                                type="date"
+                                id="ccn-search-created-from"
+                                className="ccn-database__search-date"
+                                value={searchDraft.created_at.from}
+                                max={searchDraft.created_at.to || undefined}
+                                aria-invalid={Boolean(dateRangeError)}
+                                aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
+                                onChange={(event) => updateDateRangeDraft("created_at", "from", event.target.value)}
+                            />
+                            <span className="ccn-database__search-date-separator">-</span>
+                            <input
+                                type="date"
+                                id="ccn-search-created-to"
+                                className="ccn-database__search-date"
+                                value={searchDraft.created_at.to}
+                                min={searchDraft.created_at.from || undefined}
+                                aria-invalid={Boolean(dateRangeError)}
+                                aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
+                                onChange={(event) => updateDateRangeDraft("created_at", "to", event.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="ccn-database__search-field">
+                        <label htmlFor="ccn-search-updated-from" className="ccn-database__search-label">Updated At</label>
+                        <div className="ccn-database__search-field-dates">
+                            <input
+                                type="date"
+                                id="ccn-search-updated-from"
+                                className="ccn-database__search-date"
+                                value={searchDraft.updated_at.from}
+                                max={searchDraft.updated_at.to || undefined}
+                                aria-invalid={Boolean(dateRangeError)}
+                                aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
+                                onChange={(event) => updateDateRangeDraft("updated_at", "from", event.target.value)}
+                            />
+                            <span className="ccn-database__search-date-separator">-</span>
+                            <input
+                                type="date"
+                                id="ccn-search-updated-to"
+                                className="ccn-database__search-date"
+                                value={searchDraft.updated_at.to}
+                                min={searchDraft.updated_at.from || undefined}
+                                aria-invalid={Boolean(dateRangeError)}
+                                aria-describedby={dateRangeError ? "ccn-search-date-error" : undefined}
+                                onChange={(event) => updateDateRangeDraft("updated_at", "to", event.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -493,7 +522,10 @@ export function CCN_Database() {
                 ) : null}
             </form>
 
-            <div className="ccn-table-shell">
+            <div
+                className="ccn-table-shell"
+                style={{ ["--ccn-table-rows" as string]: `${ITEMS_PER_PAGE}` }}
+            >
                 <table className="ccn-table">
                     <thead>
                         <tr>

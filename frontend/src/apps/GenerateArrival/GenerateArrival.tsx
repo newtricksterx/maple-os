@@ -239,6 +239,15 @@ export function GenerateArrival() {
         </svg>
     )
 
+    const handleReset = () => {
+        setAwbNumber('')
+        setMetadata(null)
+        setUploadedFile(null)
+        setTrackingNumbers([])
+        setFilterMode('exclude')
+        setBoxFilterText('')
+    }
+
     const Form = (
             <form
                 className='arrival-form'
@@ -366,8 +375,8 @@ export function GenerateArrival() {
                     />
                     <span className='arrival-field__hint'>
                         {filterMode === 'include'
-                            ? 'Keep only the listed box numbers. Leave blank for all boxes.'
-                            : 'Drop the listed box numbers. Leave blank for all boxes.'}
+                            ? 'Keep the tracking numbers listed in the provided box numbers. Leave blank for all boxes.'
+                            : 'Remove the tracking numbers listed in the provided box numbers. Leave blank for all boxes.'}
                     </span>
                 </div>
 
@@ -377,6 +386,13 @@ export function GenerateArrival() {
                     disabled={!isAwbValid || !uploadedFile || isParsing}
                 >
                     {isParsing ? 'Generating…' : 'Generate'}
+                </button>
+                <button
+                    type='button'
+                    className='arrival-ghost'
+                    onClick={handleReset}
+                >
+                    Clear
                 </button>
             </form>
         )
@@ -391,13 +407,9 @@ export function GenerateArrival() {
         URL.revokeObjectURL(url)
     }
 
-    const handleReset = () => {
-        setAwbNumber('')
+    const handleReturn = () => {
         setMetadata(null)
-        setUploadedFile(null)
         setTrackingNumbers([])
-        setFilterMode('exclude')
-        setBoxFilterText('')
     }
 
     const Generated = (
@@ -446,9 +458,9 @@ export function GenerateArrival() {
                 <button
                     type='button'
                     className='arrival-ghost'
-                    onClick={handleReset}
+                    onClick={handleReturn}
                 >
-                    Start over
+                    Return
                 </button>
             </div>
         </div>

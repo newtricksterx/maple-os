@@ -329,10 +329,10 @@
 }
 
 .ccn-database__search-controls {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     gap: 10px;
-    align-items: end;
 }
 
 .ccn-database__search-field {
@@ -340,6 +340,23 @@
     flex-direction: column;
     gap: 6px;
     min-width: 0;
+    width: fit-content;
+}
+
+.ccn-database__search-field-dates {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5px;
+}
+
+.ccn-database__search-date-separator {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0 4px;
+    user-select: none;
 }
 
 .ccn-database__search-label {
@@ -352,6 +369,34 @@
 
 .ccn-database__search-input {
     width: 100%;
+    min-height: 40px;
+    padding: 9px 11px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: rgba(11, 12, 16, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.ccn-database__search-date {
+    min-height: 40px;
+    padding: 9px 11px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: rgba(11, 12, 16, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    width: 15ch;
+}
+
+.ccn-database__search-select {
+    width: fit-content;
     min-height: 40px;
     padding: 9px 11px;
     font: inherit;
@@ -472,6 +517,7 @@
 .ccn-table-shell {
     flex: 1 1 auto;
     min-height: 0;
+    min-height: calc(var(--ccn-table-rows, 10) * 50px + 53px);
     overflow: auto;
     background: var(--surface-2);
     border: 1px solid var(--border);

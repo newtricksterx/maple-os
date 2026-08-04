@@ -10,13 +10,17 @@ export type CcnPage = {
     totalPages: number;
 };
 
-export type CcnSearchFilters = {
+export type dateRange = {
     from: string;
     to: string;
+}
+
+export type CcnSearchFilters = {
     awb: string;
     ccn: string;
     status: string;
-    updated_at: string;
+    created_at: dateRange;
+    updated_at: dateRange;
 };
 
 export type OperationType = "add" | "update"
