@@ -34,7 +34,7 @@ export const BaseStagedCCNsList = (
                 <h3>Staged CCNs<span className="ccn-database__staged-header-subtitle"> - changes are saved automatically</span></h3>
             </div>
 
-                <div className="ccn-table-shell ccn-database__staged-table">
+                <div className="ccn-table-shell-staged ccn-database__staged-table">
                     <table className="ccn-table" aria-label="Staged CCN records">
                         <thead>
                             <tr>

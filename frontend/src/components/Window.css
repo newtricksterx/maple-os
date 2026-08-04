@@ -10,6 +10,7 @@
   border: 1px solid var(--border);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
   color: var(--text);
+  z-index: 1;
 }
 
 .window--active {
@@ -31,9 +32,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-.window__titlebar:active {
-  
-}
 
 .window__title {
   grid-column: 2;
@@ -68,7 +66,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  z-index: 3;
+  z-index: 0;
 }
 
 .window__btn {
@@ -85,6 +83,7 @@
   transition: background 0.12s;
   flex-shrink: 0;
   position: relative;
+  z-index: 1;
 }
 
 
