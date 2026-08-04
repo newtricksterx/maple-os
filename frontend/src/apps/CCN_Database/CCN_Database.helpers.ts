@@ -1,5 +1,5 @@
 import type { CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
-import { MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
+import { EMPTY_SEARCH_FILTERS, MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
 import { supabase } from "../../lib/supabase";
 
 export function formatDate(value?: string) {
@@ -56,7 +56,12 @@ export function hasInvalidDateRange(filters: CcnSearchFilters) {
 }
 
 export function hasSearchFilters(filters: CcnSearchFilters) {
-    return Object.values(filters).some(Boolean);
+    return Object.values(filters).some((value) => {
+        if (value && typeof value === "object") {
+            return Object.values(value).some(Boolean);
+        }
+        return Boolean(value);
+    });
 }
 
 export function getCcnErrorMessage(error: unknown) {
