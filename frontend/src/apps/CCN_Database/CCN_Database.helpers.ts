@@ -1,5 +1,5 @@
 import type { CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
-import { EMPTY_SEARCH_FILTERS, MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
+import { MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
 import { supabase } from "../../lib/supabase";
 
 export function formatDate(value?: string) {
