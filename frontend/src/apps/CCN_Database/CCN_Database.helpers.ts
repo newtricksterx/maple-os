@@ -64,52 +64,21 @@ export function hasSearchFilters(filters: CcnSearchFilters) {
     });
 }
 
-export function getCcnErrorMessage(error: unknown) {
-    if (error instanceof Error && error.message === MISSING_SUPABASE_CONFIG_MESSAGE) {
-        return MISSING_SUPABASE_CONFIG_MESSAGE;
-    }
-
-    if (typeof error === "string" && error.trim()) {
-        return error;
-    }
-
-    if (typeof error === "object" && error !== null) {
-        const code = (error as { code?: string }).code;
-        if (code && typeof code === "string" && code.trim()) {
-            
-            if (code === "23505") {
-                return "A CCN already exists.";
-            }
-            else if (code === "PGRST116") {
-                return "A CCN does not exist. Please enter a valid CCN."
-            }
-            else {
-                return "Unknown error. Please contact support.";
-            }
-
-        }
-    }
-
-    return "Unable to load CCN records right now.";
-}
-
 export async function saveCcnRecords(records: CcnRecord[]) : Promise<void> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
-    for (const record of records) {
-        record.updated_at = getNowDate();
-    }
+    const recordsToSave = records.map((record) => ({
+        ...record,
+        updated_at: getNowDate(),
+    }));
 
     const { error } = await supabase
         .from("CCN_Registry")
-        .upsert(
-            records
-        )
+        .upsert(recordsToSave);
 
     if (error) {
-        console.log(error)
         throw error;
     }
 }
@@ -215,4 +184,45 @@ export const CcnListToString = (ccns: string[]) : string => {
 
 export const getNowDate = () : string => {
     return new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
+}
+
+interface SupabaseError {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+}
+
+function isSupabaseError(error: unknown): error is SupabaseError {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        ("code" in error || "message" in error)
+    );
+}
+
+export function getCcnErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        if (error.message === MISSING_SUPABASE_CONFIG_MESSAGE) {
+            return MISSING_SUPABASE_CONFIG_MESSAGE;
+        }
+
+        return error.message || "An unexpected error occurred.";
+    }
+
+    if (typeof error === "string" && error.trim()) {
+        return error;
+    }
+
+    if (isSupabaseError(error)) {
+        switch (error.code) {
+            case "23505":
+                return "One or more CCNs already exist. Please enter a valid CCN not in the database.";
+
+            case "PGRST116":
+                return "One or more CCNs do not exist. Please review CCNs entered and try again.";
+        }
+    }
+
+    return "An unexpected error occurred. Please try again or contact support.";
 }

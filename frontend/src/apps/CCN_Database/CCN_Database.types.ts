@@ -24,3 +24,12 @@ export type CcnSearchFilters = {
 };
 
 export type OperationType = "add" | "update"
+
+export type ToastType = "success" | "error" | "warning" | "info"
+
+export type ToastState = {
+    open: boolean;
+    type: ToastType;
+    title: string;
+    message: string;
+}

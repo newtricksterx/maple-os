@@ -1,0 +1,256 @@
+/* Toast */
+
+.ToastViewport {
+	--viewport-padding: 25px;
+
+	position: fixed;
+	bottom: 50px;
+	right: 0;
+
+	display: flex;
+	flex-direction: column;
+
+	width: 390px;
+	max-width: calc(100vw - 32px);
+
+	padding: var(--viewport-padding);
+	gap: 10px;
+
+	margin: 0;
+	list-style: none;
+
+	z-index: 2147483647;
+	outline: none;
+}
+
+.ToastRoot {
+	position: relative;
+
+	display: grid;
+	grid-template-areas:
+		"title action"
+		"description action";
+	grid-template-columns: 1fr max-content;
+
+	column-gap: 15px;
+	align-items: center;
+
+	padding: 15px;
+
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-left: 3px solid var(--toast-accent);
+	border-radius: 8px;
+
+	box-shadow:
+		0 10px 38px -10px rgba(0, 0, 0, 0.15),
+		0 10px 20px -15px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+
+.ToastRoot[data-state="open"] {
+	animation: slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ToastRoot[data-state="closed"] {
+	animation: hide 100ms ease-in;
+}
+
+.ToastRoot[data-swipe="move"] {
+	transform: translateX(var(--radix-toast-swipe-move-x));
+}
+
+.ToastRoot[data-swipe="cancel"] {
+	transform: translateX(0);
+	transition: transform 200ms ease-out;
+}
+
+.ToastRoot[data-swipe="end"] {
+	animation: swipeOut 100ms ease-out;
+}
+
+@keyframes hide {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes slideIn {
+	from {
+		transform: translateX(calc(100% + var(--viewport-padding)));
+	}
+
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes swipeOut {
+	from {
+		transform: translateX(var(--radix-toast-swipe-end-x));
+	}
+
+	to {
+		transform: translateX(calc(100% + var(--viewport-padding)));
+	}
+}
+
+/* Content */
+
+.ToastTitle {
+	grid-area: title;
+
+	margin: 0 0 5px;
+
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.2;
+
+	color: #111827;
+}
+
+.ToastDescription {
+	grid-area: description;
+
+	margin: 0;
+
+	font-size: 13px;
+	line-height: 1.4;
+
+	color: #6b7280;
+}
+
+/* Action */
+
+.ToastAction {
+	grid-area: action;
+}
+
+/* Variants */
+
+.ToastRoot.success {
+	--toast-accent: #16a34a;
+}
+
+.ToastRoot.error {
+	--toast-accent: #dc2626;
+}
+
+.ToastRoot.warning {
+	--toast-accent: #d97706;
+}
+
+.ToastRoot.info {
+	--toast-accent: #2563eb;
+}
+
+/* Optional: subtle tinted backgrounds */
+
+.ToastRoot.success {
+	background: #10251a;
+	border-color: #1d4d2d;
+	border-left-color: #4ade80;
+}
+
+.ToastRoot.error {
+	background: #2a1515;
+	border-color: #5c2424;
+	border-left-color: #f87171;
+}
+
+.ToastRoot.warning {
+	background: #29200f;
+	border-color: #5a4318;
+	border-left-color: #fbbf24;
+}
+
+.ToastRoot.info {
+	background: #111f33;
+	border-color: #1e3a5f;
+	border-left-color: #60a5fa;
+}
+
+.ToastRoot.success .ToastTitle {
+	color: #86efac;
+}
+
+.ToastRoot.error .ToastTitle {
+	color: #fca5a5;
+}
+
+.ToastRoot.warning .ToastTitle {
+	color: #fcd34d;
+}
+
+.ToastRoot.info .ToastTitle {
+	color: #93c5fd;
+}
+
+.ToastDescription {
+	color: #cbd5e1;
+}
+
+/* Action button */
+
+.ToastAction {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+
+	height: 28px;
+	padding: 0 10px;
+
+	border: 1px solid #d1d5db;
+	border-radius: 5px;
+
+	background: #ffffff;
+	color: #374151;
+
+	font-size: 12px;
+	font-weight: 500;
+
+	cursor: pointer;
+	user-select: none;
+}
+
+.ToastAction:hover {
+	background: #f9fafb;
+	border-color: #9ca3af;
+}
+
+.ToastAction:focus-visible {
+	outline: 2px solid #2563eb;
+	outline-offset: 2px;
+}
+
+/* Close button */
+
+.ToastClose {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+
+	width: 24px;
+	height: 24px;
+
+	border-radius: 4px;
+
+	color: #6b7280;
+
+	cursor: pointer;
+}
+
+.ToastClose:hover {
+	background: #f3f4f6;
+	color: #111827;
+}
+
+.ToastClose:focus-visible {
+	outline: 2px solid #2563eb;
+	outline-offset: 2px;
+}

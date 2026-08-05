@@ -25,8 +25,7 @@ export const BaseStagedCCNsList = (
         handleSubmit,
         submitButtonText,
         operationType,
-        errorMessage, 
-        successMessage } : StagedCcnListProps) => {
+    } : StagedCcnListProps) => {
 
     return (
         <div className="ccn-database__staged">
@@ -95,12 +94,6 @@ export const BaseStagedCCNsList = (
                     >
                         Reset
                     </button>
-
-                    {errorMessage ? (
-                        <p className="ccn-database__notice ccn-database__notice--error">{errorMessage}</p>
-                    ) : successMessage ? (
-                        <p className="ccn-database__notice ccn-database__notice--success">{successMessage}</p>
-                    ) : null}
 
                     <button
                         className="ccn-database__add-button"

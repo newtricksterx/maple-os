@@ -431,7 +431,7 @@
 .ccn-database__search-button {
     min-height: 40px;
     min-width: 76px;
-    padding: 8px 16px;
+    padding: 4px 8px;
     font-size: 13px;
     font-weight: 700;
     color: var(--text);
@@ -440,6 +440,7 @@
     border-radius: 10px;
     cursor: pointer;
     transition: filter 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+    text-align: center;
 }
 
 .ccn-database__search-button:hover:not(:disabled) {
@@ -455,7 +456,7 @@
 .ccn-database__search-clear {
     min-height: 40px;
     min-width: 76px;
-    padding: 8px 16px;
+    padding: 4px 8px;
     font-size: 13px;
     font-weight: 700;
     color: var(--text);
@@ -464,6 +465,7 @@
     border-radius: 10px;
     cursor: pointer;
     transition: filter 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+    text-align: center;
 }
 
 .ccn-database__search-clear:hover {

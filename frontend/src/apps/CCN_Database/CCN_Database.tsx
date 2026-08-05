@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { isSupabaseConfigured, supabase } from "../../lib/supabase";
 import "./CCN_Database.css";
-import type { CcnRecord, CcnSearchFilters, OperationType, Status } from "./CCN_Database.types";
+import type { CcnRecord, CcnSearchFilters, OperationType, Status, ToastState, ToastType } from "./CCN_Database.types";
 import {
     getCcnErrorMessage,
     hasInvalidDateRange,
@@ -19,14 +19,20 @@ import { exportData } from "./Services/exportService";
 import { requestCcnData, useFetchData } from "./hooks/useFetchData";
 import { SearchForm } from "./Components/SearchForm/SearchForm";
 import { DatabaseTable } from "./Components/DatabaseTable/DatabaseTable";
-
+import ToastMessage from "../../components/ToastMessage/ToastMessage";
 
 export function CCN_Database() {
     const [currentPage, setCurrentPage] = useState(1);
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const [refreshToggle, setRefreshToggle] = useState(false);
+    const [toast, setToast] = useState<ToastState>({
+        open: false,
+        type: "info",
+        title: "",
+        message: "",
+    });
 
+    const [refreshToggle, setRefreshToggle] = useState(false);
 
     const [searchDraft, setSearchDraft] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
     const [appliedSearch, setAppliedSearch] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
@@ -37,9 +43,6 @@ export function CCN_Database() {
     const [ccnValue, setCcnValue] = useState("");
     const [operationType, setOperationType] = useState<OperationType>("add");
 
-    const [addSuccessMessage, setAddSuccessMessage] = useState<string | null>(null);
-
-    const [operationError, setOperationError] = useState<string | null>(null)
     const [operationLoading, setOperationLoading] = useState(false)
 
     const uniqueId = useId();
@@ -101,6 +104,19 @@ export function CCN_Database() {
         return counts;
     }, [data]);
 
+    const showToast = useCallback((
+        type: ToastType,
+        title: string,
+        message: string
+    ) => {
+        setToast({
+            open: true,
+            type,
+            title,
+            message,
+        });
+    }, []);
+
     const goToPage = useCallback((page: number) => {
         setCurrentPage((current) => {
             const nextPage = Math.min(Math.max(page, 1), totalPages);
@@ -144,8 +160,6 @@ export function CCN_Database() {
     const handleStagedCcnChange = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        setOperationError(null);
-        setAddSuccessMessage(null);
         setOperationLoading(true);
         
         try {
@@ -158,11 +172,18 @@ export function CCN_Database() {
             setStagedCcnRecords(records)
         } catch (error) {
             console.log("Error Staging Records: ", error)
-            setOperationError(getCcnErrorMessage(error));
+
+            const errorMessage = getCcnErrorMessage(error);
+
+            showToast(
+                "error",
+                "Error",
+                errorMessage
+            );
         } finally {
             setOperationLoading(false);
         }
-    }, [awbValue, ccnValue, operationType]);
+    }, [awbValue, ccnValue, operationType, showToast]);
 
     const updateStagedRecord = useCallback(
         (ccn: string, updater: (record: CcnRecord) => CcnRecord) => {
@@ -207,8 +228,6 @@ export function CCN_Database() {
         setStagedCcnRecords([]); 
         setAwbValue(""); 
         setCcnValue(""); 
-        setOperationError(null);
-        setAddSuccessMessage(null);
     }, [])
 
     const handleDatabaseOperation = useCallback(async () => {
@@ -216,24 +235,33 @@ export function CCN_Database() {
             return;
         }
 
-        setOperationError(null);
-        setAddSuccessMessage(null);
         setOperationLoading(true);
 
         try {
             const response = await saveCcnRecords(stagedCcnRecords);
-            setAddSuccessMessage(response.successMessage);
+
+            showToast(
+                "success",
+                "Success",
+                response.successMessage ?? "Operation completed successfully."
+            );
+
+            setRefreshToggle((prev) => !prev);
+            goToPage(1);
         } catch (error) {
-            console.log("Error Attempting Operation: ", error);
-            setOperationError(getCcnErrorMessage(error));
+            console.error("Error attempting operation:", error);
+
+            const errorMessage = getCcnErrorMessage(error);
+
+            showToast(
+                "error",
+                "Error",
+                errorMessage
+            );
         } finally {
             setOperationLoading(false);
-            setRefreshToggle((prev) => !prev);
-            goToPage(1)
         }
-
-        
-    }, [goToPage, stagedCcnRecords]);
+    }, [stagedCcnRecords, goToPage, showToast]);
 
     const clearSearch = useCallback(() => {
         const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);
@@ -247,10 +275,12 @@ export function CCN_Database() {
         try {
             const { data: allMatchingRows } = await requestCcnData(appliedSearch);
             exportData(allMatchingRows, appliedSearch.status as Status);
-        } catch (err) {
-            setOperationError(getCcnErrorMessage(err));
+        } catch (error) {
+            const errorMessage = getCcnErrorMessage(error);
+
+            showToast("error", "Error", errorMessage);
         }
-    }, [appliedSearch]);
+    }, [appliedSearch, showToast]);
 
     const switchOperationType = useCallback((type: OperationType) => {
         setOperationType((current) => {
@@ -258,8 +288,6 @@ export function CCN_Database() {
                 setStagedCcnRecords([]);
                 setAwbValue("");
                 setCcnValue("");
-                setOperationError(null);
-                setAddSuccessMessage(null);
             }
             return type;
         });
@@ -297,8 +325,6 @@ export function CCN_Database() {
                                             handleSubmit={handleDatabaseOperation}
                                             submitButtonText="Update to Database"
                                             operationType="update"
-                                            errorMessage={operationError}
-                                            successMessage={addSuccessMessage}
                                         />)}
                         renderForm={ () => (<BaseCCNForm 
                                         awbValue={awbValue} 
@@ -309,7 +335,6 @@ export function CCN_Database() {
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
-                                        errorMessage={operationError}
                                     />)}
                         setOperationType={() => {switchOperationType("update")}}
                         handleResetForm={handleResetForm}
@@ -329,8 +354,6 @@ export function CCN_Database() {
                                             handleSubmit={handleDatabaseOperation}
                                             submitButtonText="Add to Database"
                                             operationType="add"
-                                            errorMessage={operationError}
-                                            successMessage={addSuccessMessage}
                                         />)}
                         renderForm={() => (<BaseCCNForm 
                                         awbValue={awbValue} 
@@ -341,7 +364,7 @@ export function CCN_Database() {
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
-                                        errorMessage={operationError}/>)}
+                                        />)}
                         setOperationType={() => {switchOperationType("add")}}
                         handleResetForm={handleResetForm}
                     />
@@ -390,6 +413,19 @@ export function CCN_Database() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 goToPage={goToPage}
+            />
+
+            <ToastMessage
+                open={toast.open}
+                onOpenChange={(open) =>
+                    setToast((current) => ({
+                        ...current,
+                        open,
+                    }))
+                }
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
             />
         </section>
     );

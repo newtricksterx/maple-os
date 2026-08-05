@@ -10,13 +10,12 @@ interface BaseCCNFormProp {
     handleAwbChange: (awbValue: string) => void;
     handleCcnChange: (CcnValue: string) => void;
     handleResetForm: () => void;
-    errorMessage?: string | null;
 }
 
 
 export const BaseCCNForm = ({ 
     awbValue, ccnValue, loading, operationType,
-    handleStagedCcnChange, handleAwbChange, handleCcnChange, handleResetForm, errorMessage } : BaseCCNFormProp) => {
+    handleStagedCcnChange, handleAwbChange, handleCcnChange, handleResetForm } : BaseCCNFormProp) => {
 
     const isFilled = operationType === "add" ? (awbValue.length > 0 && ccnValue.length > 0) : (ccnValue.length)
 
@@ -46,12 +45,6 @@ export const BaseCCNForm = ({
                 />
             </label>
             <footer className="ccn-database__add-form-footer">
-                <div className="ccn-database__notice-container">
-                    {errorMessage && <p className="ccn-database__notice ccn-database__notice--error">{errorMessage}</p>}
-                </div>
-
-                
-
                 <div className="ccn-database__button-container">
                     <button
                         className="ccn-database__reset-button"
