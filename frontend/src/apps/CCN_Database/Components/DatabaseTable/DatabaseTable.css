@@ -1,0 +1,5 @@
+.ccn-table-main {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
