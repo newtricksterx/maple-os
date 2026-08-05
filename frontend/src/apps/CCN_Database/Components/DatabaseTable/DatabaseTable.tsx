@@ -57,8 +57,8 @@ export const DatabaseTable = ( {data, loading, currentIndex, currentPage, totalP
                                             {status}
                                         </span>
                                     </td>
-                                    <td>{formatDate(ccn.created_at)}</td>
-                                    <td>{formatDate(ccn.updated_at)}</td>
+                                    <td title={`${ccn.created_at}`}>{formatDate(ccn.created_at)}</td>
+                                    <td title={`${ccn.updated_at}`}>{formatDate(ccn.updated_at)}</td>
                                     <td>{ccn.comment}</td>
                                 </tr>
                             );

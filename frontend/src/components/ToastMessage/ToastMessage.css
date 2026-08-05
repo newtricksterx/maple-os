@@ -45,6 +45,8 @@
 	box-shadow:
 		0 10px 38px -10px rgba(0, 0, 0, 0.15),
 		0 10px 20px -15px rgba(0, 0, 0, 0.1);
+
+    font-family: 'SF Pro Rounded';
 }
 
 /* Animations */
@@ -112,6 +114,8 @@
 	line-height: 1.2;
 
 	color: #111827;
+
+    font-family: 'SF Pro Rounded';
 }
 
 .ToastDescription {
@@ -123,6 +127,8 @@
 	line-height: 1.4;
 
 	color: #6b7280;
+
+    font-family: 'SF Pro Rounded';
 }
 
 /* Action */
