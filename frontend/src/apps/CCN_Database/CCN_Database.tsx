@@ -157,7 +157,7 @@ export function CCN_Database() {
         []
     );
 
-    const inFormStagedCcnChange = useCallback(async (event: React.SubmitEvent) => {
+    const formStagedCcnChange = useCallback(async (event: React.SubmitEvent) => {
         event.preventDefault();
 
         setOperationLoading(true);
@@ -331,7 +331,7 @@ export function CCN_Database() {
                                         ccnValue={ccnValue} 
                                         loading={operationLoading}  
                                         operationType="UPDATE" 
-                                        handleStagedCcnChange={inFormStagedCcnChange}
+                                        handleStagedCcnChange={formStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={resetCcnStagingForm}
@@ -360,7 +360,7 @@ export function CCN_Database() {
                                         ccnValue={ccnValue} 
                                         loading={operationLoading}  
                                         operationType="INSERT" 
-                                        handleStagedCcnChange={inFormStagedCcnChange}
+                                        handleStagedCcnChange={formStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={resetCcnStagingForm}
