@@ -529,8 +529,7 @@
 
 .ccn-table-shell {
     flex: 1 1 auto;
-    min-height: 0;
-    min-height: calc(var(--ccn-table-rows, 10) * 50px + 53px);
+    min-height: calc(var(--ccn-table-rows, 10) * 59px + 40px);
     overflow: auto;
     background: var(--surface-2);
     border: 1px solid var(--border);
@@ -539,7 +538,6 @@
 
 .ccn-table {
     width: 100%;
-    min-width: 520px;
     border-collapse: separate;
     border-spacing: 0;
     color: var(--text);
