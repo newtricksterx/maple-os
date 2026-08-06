@@ -2,16 +2,14 @@ import type { CcnRecord, CcnSearchFilters, Status } from "./CCN_Database.types";
 import { MISSING_SUPABASE_CONFIG_MESSAGE } from "./CCN_Database.constants";
 import { supabase } from "../../lib/supabase";
 
-export function formatDate(value?: string) {
-    if (!value) return "";
+export function formatDate(date?: string) {
+    if (!date) return "";
     
-    // Fix: If it's already a plain date (no 'T' or time info), return it directly
-    if (value.length === 10 && !value.includes("T")) {
-        return value;
+    if (date.length === 10 && !date.includes("T")) {
+        return date;
     }
     
-    // Otherwise, safely convert full Supabase timestamps using New York time
-    return new Date(value).toLocaleDateString('en-CA', { 
+    return new Date(date).toLocaleDateString('en-CA', { 
         timeZone: 'America/New_York' 
     });
 }

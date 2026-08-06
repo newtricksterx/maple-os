@@ -128,7 +128,7 @@ export function CCN_Database() {
         });
     }, [loading, totalPages]);
 
-    const applySearch = useCallback(() => {
+    const applySearchFilters = useCallback(() => {
         const nextSearch = normalizeSearchFilters(searchDraft);
         if (hasInvalidDateRange(nextSearch)) return;
 
@@ -137,14 +137,14 @@ export function CCN_Database() {
         goToPage(1)
     }, [goToPage, searchDraft]);
 
-    const updateSearchDraft = useCallback((field: keyof CcnSearchFilters, value: string) => {
+    const updateSearchDraftFilters = useCallback((field: keyof CcnSearchFilters, value: string) => {
         setSearchDraft((currentSearch) => ({
             ...currentSearch,
             [field]: value,
         }));
     }, []);
 
-    const updateDateRangeDraft = useCallback(
+    const updateSearchDateRangeDraft = useCallback(
         (field: "created_at" | "updated_at", subfield: "from" | "to", value: string) => {
             setSearchDraft((currentSearch) => ({
                 ...currentSearch,
@@ -157,7 +157,7 @@ export function CCN_Database() {
         []
     );
 
-    const handleStagedCcnChange = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    const inFormStagedCcnChange = useCallback(async (event: React.SubmitEvent) => {
         event.preventDefault();
 
         setOperationLoading(true);
@@ -196,14 +196,14 @@ export function CCN_Database() {
         []
     );
 
-    const handleCommentChange = useCallback(
+    const ccnCommentChange = useCallback(
         (ccn: string, comment: string) => {
             updateStagedRecord(ccn, (record) => ({ ...record, comment }));
         },
         [updateStagedRecord]
     );
 
-    const handleStatusChange = useCallback(
+    const ccnStatusChange = useCallback(
         (ccn: string, status: Status) => {
             updateStagedRecord(ccn, (record) => ({
                 ...record,
@@ -213,7 +213,7 @@ export function CCN_Database() {
         [updateStagedRecord]
     );
 
-    const handleDateChange = useCallback(
+    const ccnDateChange = useCallback(
         (ccn: string, date: string) => {
             updateStagedRecord(ccn, (record) => ({
                 ...record,
@@ -224,13 +224,13 @@ export function CCN_Database() {
         [updateStagedRecord]
     );
 
-    const handleResetForm = useCallback(() => {
+    const resetCcnStagingForm = useCallback(() => {
         setStagedCcnRecords([]); 
         setAwbValue(""); 
         setCcnValue(""); 
     }, [])
 
-    const handleDatabaseOperation = useCallback(async () => {
+    const executeDatabaseOperation = useCallback(async () => {
         if (stagedCcnRecords.length === 0) {
             return;
         }
@@ -263,7 +263,7 @@ export function CCN_Database() {
         }
     }, [stagedCcnRecords, showToast, goToPage]);
 
-    const clearSearch = useCallback(() => {
+    const clearSearchFilters = useCallback(() => {
         const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);
 
         setSearchDraft(clearedSearch);
@@ -271,7 +271,7 @@ export function CCN_Database() {
         goToPage(1);
     }, [goToPage]);
 
-    const handleExport = useCallback(async () => {
+    const exportCCNDatabase = useCallback(async () => {
         try {
             const { data: allMatchingRows } = await requestCcnData(appliedSearch);
             exportData(allMatchingRows, appliedSearch.status as Status);
@@ -307,7 +307,7 @@ export function CCN_Database() {
 
 
                 <div className="ccn-database__actions">
-                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data.length} onClick={handleExport}>
+                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data.length} onClick={exportCCNDatabase}>
                         <ExitIcon />
                         Export
                     </button>
@@ -318,11 +318,11 @@ export function CCN_Database() {
                         stagedCcnRecords={stagedCcnRecords}
                         renderList={ () => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}
-                                            handleStatusChange={(handleStatusChange)}
-                                            handleCommentChange={handleCommentChange}
-                                            handleDateChange={handleDateChange}
-                                            handleResetForm={handleResetForm}
-                                            handleSubmit={handleDatabaseOperation}
+                                            handleStatusChange={(ccnStatusChange)}
+                                            handleCommentChange={ccnCommentChange}
+                                            handleDateChange={ccnDateChange}
+                                            handleResetForm={resetCcnStagingForm}
+                                            handleSubmit={executeDatabaseOperation}
                                             submitButtonText="Update to Database"
                                             operationType="UPDATE"
                                         />)}
@@ -331,13 +331,13 @@ export function CCN_Database() {
                                         ccnValue={ccnValue} 
                                         loading={operationLoading}  
                                         operationType="UPDATE" 
-                                        handleStagedCcnChange={handleStagedCcnChange}
+                                        handleStagedCcnChange={inFormStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
-                                        handleResetForm={handleResetForm}
+                                        handleResetForm={resetCcnStagingForm}
                                     />)}
                         setOperationType={() => {switchOperationType("UPDATE")}}
-                        handleResetForm={handleResetForm}
+                        handleResetForm={resetCcnStagingForm}
                     />
 
 
@@ -347,11 +347,11 @@ export function CCN_Database() {
                         stagedCcnRecords={stagedCcnRecords}
                         renderList={() => (<BaseStagedCCNsList
                                             stagedCcnRecords={stagedCcnRecords}
-                                            handleStatusChange={handleStatusChange}
-                                            handleCommentChange={handleCommentChange}
-                                            handleDateChange={handleDateChange}
-                                            handleResetForm={handleResetForm}
-                                            handleSubmit={handleDatabaseOperation}
+                                            handleStatusChange={ccnStatusChange}
+                                            handleCommentChange={ccnCommentChange}
+                                            handleDateChange={ccnDateChange}
+                                            handleResetForm={resetCcnStagingForm}
+                                            handleSubmit={executeDatabaseOperation}
                                             submitButtonText="Add to Database"
                                             operationType="INSERT"
                                         />)}
@@ -360,13 +360,13 @@ export function CCN_Database() {
                                         ccnValue={ccnValue} 
                                         loading={operationLoading}  
                                         operationType="INSERT" 
-                                        handleStagedCcnChange={handleStagedCcnChange}
+                                        handleStagedCcnChange={inFormStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
-                                        handleResetForm={handleResetForm}
+                                        handleResetForm={resetCcnStagingForm}
                                         />)}
                         setOperationType={() => {switchOperationType("INSERT")}}
-                        handleResetForm={handleResetForm}
+                        handleResetForm={resetCcnStagingForm}
                     />
                 </div>
             </header>
@@ -396,10 +396,10 @@ export function CCN_Database() {
 
             <SearchForm
                 searchDraft={searchDraft}
-                updateSearchDraft={updateSearchDraft}
-                updateDateRangeDraft={updateDateRangeDraft}
-                applySearch={applySearch}
-                clearSearch={clearSearch}
+                updateSearchDraft={updateSearchDraftFilters}
+                updateDateRangeDraft={updateSearchDateRangeDraft}
+                applySearch={applySearchFilters}
+                clearSearch={clearSearchFilters}
                 appliedSearch={appliedSearch}
                 loading={loading}
                 dateRangeError={dateRangeError}

@@ -6,7 +6,7 @@ interface BaseCCNFormProp {
     ccnValue: string;
     loading: boolean;
     operationType: OperationType;
-    handleStagedCcnChange: (event: React.FormEvent<HTMLFormElement>) => void;
+    handleStagedCcnChange: (event: React.SubmitEvent) => void;
     handleAwbChange: (awbValue: string) => void;
     handleCcnChange: (CcnValue: string) => void;
     handleResetForm: () => void;
