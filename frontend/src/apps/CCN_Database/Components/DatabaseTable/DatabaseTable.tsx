@@ -3,6 +3,7 @@ import './DatabaseTable.css'
 import { ITEMS_PER_PAGE } from '../../CCN_Database.constants'
 import type { CcnRecord } from '../../CCN_Database.types';
 import { formatDate, getStatusClassName, normalizeStatus } from '../../CCN_Database.helpers';
+import { HistoryDialog } from '../HistoryDialog/HistoryDialog';
 
 interface DatabaseTableProps {
     data: CcnRecord[];
@@ -30,18 +31,19 @@ export const DatabaseTable = ( {data, loading, currentIndex, currentPage, totalP
                             <th>Created At</th>
                             <th>Updated At</th>
                             <th>Comment</th>
+                            <th>View History</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && data.length === 0 ? (
                             <tr>
-                                <td className="ccn-table__empty" colSpan={6}>Loading CCN records...</td>
+                                <td className="ccn-table__empty" colSpan={7}>Loading CCN records...</td>
                             </tr>
                         ) : null}
 
                         {!loading && data.length === 0 ? (
                             <tr>
-                                <td className="ccn-table__empty" colSpan={6}>No CCN Records Found.</td>
+                                <td className="ccn-table__empty" colSpan={7}>No CCN Records Found.</td>
                             </tr>
                         ) : null}
 
@@ -60,6 +62,9 @@ export const DatabaseTable = ( {data, loading, currentIndex, currentPage, totalP
                                     <td title={`${ccn.created_at}`}>{formatDate(ccn.created_at)}</td>
                                     <td title={`${ccn.updated_at}`}>{formatDate(ccn.updated_at)}</td>
                                     <td>{ccn.comment}</td>
+                                    <td>
+                                        <HistoryDialog ccn={ccn.ccn} />
+                                    </td>
                                 </tr>
                             );
                         })}

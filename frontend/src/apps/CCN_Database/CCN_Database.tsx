@@ -41,7 +41,7 @@ export function CCN_Database() {
 
     const [awbValue, setAwbValue] = useState("");
     const [ccnValue, setCcnValue] = useState("");
-    const [operationType, setOperationType] = useState<OperationType>("add");
+    const [operationType, setOperationType] = useState<OperationType>("INSERT");
 
     const [operationLoading, setOperationLoading] = useState(false)
 
@@ -261,7 +261,7 @@ export function CCN_Database() {
         } finally {
             setOperationLoading(false);
         }
-    }, [stagedCcnRecords, goToPage, showToast]);
+    }, [stagedCcnRecords, showToast, goToPage]);
 
     const clearSearch = useCallback(() => {
         const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);
@@ -324,19 +324,19 @@ export function CCN_Database() {
                                             handleResetForm={handleResetForm}
                                             handleSubmit={handleDatabaseOperation}
                                             submitButtonText="Update to Database"
-                                            operationType="update"
+                                            operationType="UPDATE"
                                         />)}
                         renderForm={ () => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
                                         loading={operationLoading}  
-                                        operationType="update" 
+                                        operationType="UPDATE" 
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
                                     />)}
-                        setOperationType={() => {switchOperationType("update")}}
+                        setOperationType={() => {switchOperationType("UPDATE")}}
                         handleResetForm={handleResetForm}
                     />
 
@@ -353,19 +353,19 @@ export function CCN_Database() {
                                             handleResetForm={handleResetForm}
                                             handleSubmit={handleDatabaseOperation}
                                             submitButtonText="Add to Database"
-                                            operationType="add"
+                                            operationType="INSERT"
                                         />)}
                         renderForm={() => (<BaseCCNForm 
                                         awbValue={awbValue} 
                                         ccnValue={ccnValue} 
                                         loading={operationLoading}  
-                                        operationType="add" 
+                                        operationType="INSERT" 
                                         handleStagedCcnChange={handleStagedCcnChange}
                                         handleAwbChange={setAwbValue}
                                         handleCcnChange={setCcnValue}
                                         handleResetForm={handleResetForm}
                                         />)}
-                        setOperationType={() => {switchOperationType("add")}}
+                        setOperationType={() => {switchOperationType("INSERT")}}
                         handleResetForm={handleResetForm}
                     />
                 </div>

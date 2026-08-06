@@ -70,7 +70,7 @@ export const BaseStagedCCNsList = (
                                         />
                                     </td>
                                     <td>
-                                        { operationType == "add" ? 
+                                        { operationType == "INSERT" ? 
                                             <input
                                                 className="date" 
                                                 type="date" 

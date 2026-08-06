@@ -32,7 +32,7 @@ export const OperationDialog = ({ title, disabled, stagedCcnRecords, renderList,
                     type="button"
                     disabled={disabled}
                     onClick={() => {
-                        setOperationType("update");
+                        setOperationType("UPDATE");
                         setOpen(true);
                     }}
                 >

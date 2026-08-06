@@ -17,14 +17,14 @@ export const BaseCCNForm = ({
     awbValue, ccnValue, loading, operationType,
     handleStagedCcnChange, handleAwbChange, handleCcnChange, handleResetForm } : BaseCCNFormProp) => {
 
-    const isFilled = operationType === "add" ? (awbValue.length > 0 && ccnValue.length > 0) : (ccnValue.length)
+    const isFilled = operationType === "INSERT" ? (awbValue.length > 0 && ccnValue.length > 0) : (ccnValue.length)
 
 
 
     return (
         <form className="ccn-database__add-form" onSubmit={handleStagedCcnChange} autoComplete="off">
             {
-                operationType === "add" ?             
+                operationType === "INSERT" ?             
                     <input
                     type="text"
                     id="awb"

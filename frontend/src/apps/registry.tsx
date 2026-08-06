@@ -1,6 +1,6 @@
 import type { AppDefinition, AppId } from '../os/types'
-import { Notes } from './Notes'
-import { Calculator } from './Calculator'
+import { Notes } from './Notes/Notes'
+import { Calculator } from './Calculator/Calculator'
 import { GenerateArrival } from './GenerateArrival/GenerateArrival'
 import { BoxIntersect } from './BoxIntersect/BoxIntersect'
 import { CCN_Database } from './CCN_Database/CCN_Database';

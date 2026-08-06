@@ -23,11 +23,11 @@ export async function stageCcnRecords({
         throw new Error("Please enter at least one CCN.");
     }
 
-    if (operationType === "add" && !cleanAwbValue) {
+    if (operationType === "INSERT" && !cleanAwbValue) {
         throw new Error("Please enter an AWB.");
     }
 
-    if (operationType === "update") {
+    if (operationType === "UPDATE") {
 
         const ccns = await Promise.all(
             cleanCcnList.map(ccn =>

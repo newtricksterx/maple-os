@@ -41,15 +41,77 @@ export type Database = {
         }
         Relationships: []
       }
+      CCN_Registry_History: {
+        Row: {
+          awb: string
+          ccn: string
+          changed_at: string
+          comment: string | null
+          id: string
+          operation: Database["public"]["Enums"]["operation_type"]
+          status: Database["public"]["Enums"]["ccn_status"]
+        }
+        Insert: {
+          awb: string
+          ccn: string
+          changed_at: string
+          comment?: string | null
+          id?: string
+          operation: Database["public"]["Enums"]["operation_type"]
+          status: Database["public"]["Enums"]["ccn_status"]
+        }
+        Update: {
+          awb?: string
+          ccn?: string
+          changed_at?: string
+          comment?: string | null
+          id?: string
+          operation?: Database["public"]["Enums"]["operation_type"]
+          status?: Database["public"]["Enums"]["ccn_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "CCN_Registry_History_ccn_fkey"
+            columns: ["ccn"]
+            isOneToOne: false
+            referencedRelation: "CCN_Registry"
+            referencedColumns: ["ccn"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_ccn_status_counts: {
+        Args: {
+          p_awb?: string
+          p_ccn?: string
+          p_from?: string
+          p_status?: string
+          p_to?: string
+          p_updated_at?: string
+        }
+        Returns: {
+          ccn_not_on_file: number
+          exam: number
+          other: number
+          rejected: number
+          released: number
+        }[]
+      }
     }
     Enums: {
-      ccn_status: "Released" | "Exam" | "CCN not on file" | "Rejected" | "Pending" | "King" | "Other"
+      ccn_status:
+        | "Released"
+        | "Exam"
+        | "Rejected"
+        | "CCN not on file"
+        | "Pending"
+        | "King"
+        | "Other"
+      operation_type: "INSERT" | "UPDATE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -177,7 +239,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      ccn_status: ["Released" , "Exam" , "CCN not on file" , "Rejected" , "Pending" , "King" , "Other"],
+      ccn_status: [
+        "Released",
+        "Exam",
+        "Rejected",
+        "CCN not on file",
+        "Pending",
+        "King",
+        "Other",
+      ],
+      operation_type: ["INSERT", "UPDATE"],
     },
   },
 } as const

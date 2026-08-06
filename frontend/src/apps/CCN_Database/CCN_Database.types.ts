@@ -1,7 +1,9 @@
 import type { Enums, Tables } from "../../../database.types";
 
 export type Status = Enums<"ccn_status">;
+export type OperationType = Enums<"operation_type">
 export type CcnRecord = Tables<"CCN_Registry">;
+export type CcnRecordHistory = Tables<"CCN_Registry_History">
 
 export type CcnPage = {
     data: CcnRecord[];
@@ -22,8 +24,6 @@ export type CcnSearchFilters = {
     created_at: dateRange;
     updated_at: dateRange;
 };
-
-export type OperationType = "add" | "update"
 
 export type ToastType = "success" | "error" | "warning" | "info"
 
