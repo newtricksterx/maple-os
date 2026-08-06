@@ -79,9 +79,8 @@
 
 .intersect__duplicates-summary {
     padding: 12px 14px;
-    border: 1px solid rgba(94, 158, 255, 0.2);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(94, 158, 255, 0.08), rgba(74, 222, 128, 0.08));
 }
 
 .intersect__duplicates-summary__header {
@@ -128,7 +127,7 @@
 }
 
 .intersect__duplicates-summary__panel-count {
-    color: var(--accent);
+    color: var(--text);
 }
 
 .intersect__duplicates-summary__list {
@@ -148,12 +147,12 @@
     border-radius: 999px;
     font-size: 12px;
     color: var(--text);
-    background: rgba(94, 158, 255, 0.12);
+    background: var(--surface);
 }
 
 .intersect__duplicates-summary__item-count {
     font-weight: 700;
-    color: var(--accent);
+    color: var(--text-muted);
 }
 
 .intersect__duplicates-summary__empty {

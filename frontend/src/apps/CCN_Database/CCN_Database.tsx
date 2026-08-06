@@ -60,7 +60,7 @@ export function CCN_Database() {
     useEffect(() => {
         if (!isSupabaseConfigured || !supabase) return;
 
-        const client = supabase; // narrowed to non-null, stays that way
+        const client = supabase; 
 
         const channel = client
         .channel(channelId.current)
