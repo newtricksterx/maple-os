@@ -11,7 +11,9 @@ import arrivalDocIcon from '../icons/arrival_doc_icon.png'
 import boxIntersectIcon from '../icons/box_intersect_icon.png'
 
 
-// The single place to register apps. Adding an icon = one entry here + a component.
+// Register the apps that show up on the desktop.
+// Struture is as follows: id, title, imgAlt, component, defaultsize, imgUrl
+// note that the component is the actual React component that will be rendered on a new window when the user clicks on the respective button.
 export const APPS: AppDefinition[] = [
   {
     id: 'notes', title: 'Notes', imgAlt: '📝', component: Notes, defaultSize: { width: 460, height: 360 },
@@ -42,6 +44,7 @@ export const APPS: AppDefinition[] = [
   }
 ]
 
+// returns metadata of an app based on registry structure
 export function getApp(id: AppId): AppDefinition | undefined {
   return APPS.find((a) => a.id === id)
 }

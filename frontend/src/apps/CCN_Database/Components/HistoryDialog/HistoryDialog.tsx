@@ -88,7 +88,7 @@ export const HistoryDialog = ({ ccn }: HistoryDialogProps) => {
 
                             return (
                                 <tr key={entry.id}>
-                                    <td title={entry.changed_at}>{formatDate(entry.changed_at)}</td>
+                                    <td title={`${entry.changed_at.split(/[+T]/).slice(0, 2).join(' ')}`}>{formatDate(entry.changed_at)}</td>
                                     <td>{entry.awb}</td>
                                     <td>
                                         <span className={`ccn-status ${getStatusClassName(status)}`}>

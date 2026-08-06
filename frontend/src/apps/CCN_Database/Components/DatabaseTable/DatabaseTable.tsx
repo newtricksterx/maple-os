@@ -59,8 +59,8 @@ export const DatabaseTable = ( {data, loading, currentIndex, currentPage, totalP
                                             {status}
                                         </span>
                                     </td>
-                                    <td title={`${ccn.created_at}`}>{formatDate(ccn.created_at)}</td>
-                                    <td title={`${ccn.updated_at}`}>{formatDate(ccn.updated_at)}</td>
+                                    <td title={`${ccn.created_at.split(/[+T]/).slice(0, 2).join(' ')}`}>{formatDate(ccn.created_at)}</td>
+                                    <td title={`${ccn.updated_at.split(/[+T]/).slice(0, 2).join(' ')}`}>{formatDate(ccn.updated_at)}</td>
                                     <td>{ccn.comment}</td>
                                     <td>
                                         <HistoryDialog ccn={ccn.ccn} />
