@@ -26,7 +26,6 @@ export const BaseStagedCCNsList = (
         submitButtonText,
         operationType,
     } : StagedCcnListProps) => {
-
     return (
         <div className="ccn-database__staged">
             <div className="ccn-database__staged-header">
