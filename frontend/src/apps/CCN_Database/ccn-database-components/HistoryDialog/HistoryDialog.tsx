@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog } from "radix-ui";
 import { ScrollTextIcon } from "lucide-react";
-import { useFetchCcnHistory } from "../../hooks/useFetchCcnHistory";
+import { useFetchCcnHistory } from "../../ccn-database-hooks/useFetchCcnHistory";
 import { formatDate, normalizeStatus, getStatusClassName } from "../../CCN_Database.helpers"
 import "./HistoryDialog.css"
 

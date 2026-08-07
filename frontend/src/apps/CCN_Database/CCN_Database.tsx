@@ -9,15 +9,15 @@ import {
     normalizeStatus,
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE } from "./CCN_Database.constants";
-import { BaseCCNForm } from "./components/BaseCCNForm";
-import { OperationDialog } from "./components/OperationDialog";
-import { BaseStagedCCNsList } from "./components/BaseStagedCCNsList/BaseStagedCCNsList";
+import { BaseCCNForm } from "./ccn-database-components/BaseCCNForm";
+import { OperationDialog } from "./ccn-database-components/OperationDialog";
+import { BaseStagedCCNsList } from "./ccn-database-components/BaseStagedCCNsList/BaseStagedCCNsList";
 import { ExitIcon } from "@radix-ui/react-icons";
-import { stageCcnRecords } from "./services/stageService";
-import { saveCcnRecords } from "./services/saveService";
-import { requestCcnData, useFetchData } from "./hooks/useFetchData";
-import { SearchForm } from "./components/SearchForm/SearchForm";
-import { DatabaseTable } from "./components/DatabaseTable/DatabaseTable";
+import { stageCcnRecords } from "./ccn-database-services/stageService";
+import { saveCcnRecords } from "./ccn-database-services/saveService";
+import { requestCcnData, useFetchData } from "./ccn-database-hooks/useFetchData";
+import { SearchForm } from "./ccn-database-components/SearchForm/SearchForm";
+import { DatabaseTable } from "./ccn-database-components/DatabaseTable/DatabaseTable";
 import ToastMessage from "../../components/ToastMessage/ToastMessage";
 
 
@@ -274,7 +274,7 @@ export function CCN_Database() {
     const exportCCNDatabase = useCallback(async () => {
         try {
             const { data: allMatchingRows } = await requestCcnData(appliedSearch);
-            const { exportData } = await import("./services/exportService");
+            const { exportData } = await import("./ccn-database-services/exportService");
             exportData(allMatchingRows, appliedSearch.status as Status);
         } catch (error) {
             const errorMessage = getCcnErrorMessage(error);
