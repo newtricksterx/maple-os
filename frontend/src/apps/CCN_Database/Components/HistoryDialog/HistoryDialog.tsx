@@ -34,7 +34,7 @@ export const HistoryDialog = ({ ccn }: HistoryDialogProps) => {
                 <div className="ccn-dialog__header">
                     <div className="ccn-dialog__heading">
                         <Dialog.Title className="ccn-dialog__title">
-                            History - {ccn}
+                            History - <span className="ccn-dialog__ccn-header">{ccn}</span>
                         </Dialog.Title>
                     </div>
                     <Dialog.Close asChild>
