@@ -1,0 +1,10 @@
+.ccn-table-main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+tbody {
+    min-height: 630px;
+    min-width: 630px;
+}

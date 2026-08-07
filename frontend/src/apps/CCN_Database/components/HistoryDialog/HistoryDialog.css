@@ -1,0 +1,30 @@
+.ccn-database__history {
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    background: rgba(45, 44, 44, 1);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: filter 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+    text-align: center;
+}
+
+.ccn-database__history:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.ccn-database__history:focus {
+    outline: none;
+}
+
+.ccn-database__history:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+}
+
+.ccn-dialog__ccn-header {
+    color: var(--text-muted);
+}
