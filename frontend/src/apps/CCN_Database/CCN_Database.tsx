@@ -15,11 +15,11 @@ import { BaseStagedCCNsList } from "./components/BaseStagedCCNsList/BaseStagedCC
 import { ExitIcon } from "@radix-ui/react-icons";
 import { stageCcnRecords } from "./services/stageService";
 import { saveCcnRecords } from "./services/saveService";
-import { exportData } from "./services/exportService";
 import { requestCcnData, useFetchData } from "./hooks/useFetchData";
 import { SearchForm } from "./components/SearchForm/SearchForm";
 import { DatabaseTable } from "./components/DatabaseTable/DatabaseTable";
 import ToastMessage from "../../components/ToastMessage/ToastMessage";
+
 
 export function CCN_Database() {
     const [currentPage, setCurrentPage] = useState(1);
@@ -274,6 +274,7 @@ export function CCN_Database() {
     const exportCCNDatabase = useCallback(async () => {
         try {
             const { data: allMatchingRows } = await requestCcnData(appliedSearch);
+            const { exportData } = await import("./services/exportService");
             exportData(allMatchingRows, appliedSearch.status as Status);
         } catch (error) {
             const errorMessage = getCcnErrorMessage(error);
