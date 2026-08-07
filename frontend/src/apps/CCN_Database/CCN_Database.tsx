@@ -9,16 +9,16 @@ import {
     normalizeStatus,
 } from "./CCN_Database.helpers";
 import { EMPTY_SEARCH_FILTERS, ITEMS_PER_PAGE } from "./CCN_Database.constants";
-import { BaseCCNForm } from "./Components/BaseCCNForm";
-import { OperationDialog } from "./Components/OperationDialog";
-import { BaseStagedCCNsList } from "./Components/BaseStagedCCNsList/BaseStagedCCNsList";
+import { BaseCCNForm } from "./components/BaseCCNForm";
+import { OperationDialog } from "./components/OperationDialog";
+import { BaseStagedCCNsList } from "./components/BaseStagedCCNsList/BaseStagedCCNsList";
 import { ExitIcon } from "@radix-ui/react-icons";
-import { stageCcnRecords } from "./Services/stageService";
-import { saveCcnRecords } from "./Services/saveService";
-import { exportData } from "./Services/exportService";
+import { stageCcnRecords } from "./services/stageService";
+import { saveCcnRecords } from "./services/saveService";
+import { exportData } from "./services/exportService";
 import { requestCcnData, useFetchData } from "./hooks/useFetchData";
-import { SearchForm } from "./Components/SearchForm/SearchForm";
-import { DatabaseTable } from "./Components/DatabaseTable/DatabaseTable";
+import { SearchForm } from "./components/SearchForm/SearchForm";
+import { DatabaseTable } from "./components/DatabaseTable/DatabaseTable";
 import ToastMessage from "../../components/ToastMessage/ToastMessage";
 
 export function CCN_Database() {
