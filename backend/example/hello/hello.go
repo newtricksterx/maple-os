@@ -25,4 +25,9 @@ func main() {
 	// If no error was returned, print the returned map of
 	// messages to the console.
 	fmt.Println(messages)
+
+	for name, message := range messages {
+		res := fmt.Sprintf("%s: %s", name, message)
+		fmt.Println(res)
+	}
 }
