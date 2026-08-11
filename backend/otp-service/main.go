@@ -25,16 +25,17 @@ func postOneTimePasswordGuess(c *gin.Context) {
 
 	if err := c.BindJSON(&guess); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, err)
+		return
 	}
 
 	if err := godotenv.Load("../.env"); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"status": "NO PASSWORD", "provided": guess})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"status": "NO PASSWORD", "guess": guess})
+		return
 	}
 
 	if guess == os.Getenv("SECRET_OTP") {
-		c.IndentedJSON(http.StatusOK, gin.H{"status": "authorized", "provided": guess})
+		c.IndentedJSON(http.StatusOK, gin.H{"status": "authorized", "guess": guess})
 	} else {
-		c.IndentedJSON(http.StatusUnauthorized, gin.H{"status": "unauthorized", "provided": guess})
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{"status": "unauthorized", "guess": guess})
 	}
-
 }

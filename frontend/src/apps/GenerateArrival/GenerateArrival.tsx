@@ -5,10 +5,8 @@ import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 
 const TIMEZONE = "ED"
-const DEST_CODE = "'0497"
+const DEST_CODE = `="0497"`
 const WH_CODE = "6031"
-
-
 
 export type BOX_INFORMATION_METADATA = {
     awb: string;
@@ -17,8 +15,6 @@ export type BOX_INFORMATION_METADATA = {
 }
 
 type AWBValidationResult = 'valid' | 'bad-format' | 'bad-check-digit' | 'bypass'
-
-
 
 function GenerateNewFile(trackingNumbers: string[], AWBNumber: string) : File {
     const CCNs = []
@@ -31,7 +27,6 @@ function GenerateNewFile(trackingNumbers: string[], AWBNumber: string) : File {
     const pad = (value: number) => String(value).padStart(2, '0')
     const roundedMinutes = now.getMinutes() < 30 ? 0 : 30
     const arrivalDate =
-        "'" +
         `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
         `${pad(now.getHours())}${pad(roundedMinutes)}`
 
@@ -56,7 +51,6 @@ function GenerateNewFile(trackingNumbers: string[], AWBNumber: string) : File {
         AWBNumber,   // AWB/Bill of Lading (optional)
     ])
 
-    // unparse writes DEST_CODE ('0497') unquoted -> a bare, numeric-looking 0497
     const csv = Papa.unparse({ fields, data: rows })
 
     return new File([csv], `${AWBNumber}.csv`, { type: 'text/csv' })
@@ -163,7 +157,6 @@ export function GenerateArrival() {
                 })
                 
                 const headers = rows.length > 0 ? rows[0] : []
-                // console.log("Excel Headers:", headers) // Check your console to see the array
 
                 aggregateRows(rows, headers)
             } catch (err) {
