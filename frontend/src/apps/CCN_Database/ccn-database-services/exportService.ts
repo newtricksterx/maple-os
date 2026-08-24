@@ -2,15 +2,11 @@ import { dataToHashMap, getNowDate } from "../CCN_Database.helpers";
 import type { CcnRecord, Status } from "../CCN_Database.types";
 
 const escapeCsvField = (value: string): string => {
-    // Detect values that Excel/WPS will misinterpret as numbers
-    // (leading zeros, plain integers/decimals, scientific notation, etc.)
     const looksNumeric = /^[+-]?\d+(\.\d+)?$/.test(value) || /^0\d+/.test(value);
 
     const escaped = value.replace(/"/g, '""');
 
     if (looksNumeric) {
-        // Force Excel/WPS to treat it as literal text, avoids the
-        // "number stored as text" warning and leading apostrophe
         return `="${escaped}"`;
     }
 
@@ -30,7 +26,7 @@ export function exportData(ccns: CcnRecord[], status: Status) {
         rows.push("");
     });
 
-    rows.push(`"Total CCNs: ${ccns.length} CCN${ccns.length === 1 ? "" : "s"}"`);
+    rows.push(`"Total CCN(s): ${ccns.length}"`);
 
     const csvContent = "\uFEFF" + rows.join("\r\n"); // BOM helps WPS/Excel detect UTF-8 correctly
     const file = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });

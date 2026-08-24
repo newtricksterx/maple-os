@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"os"
@@ -9,9 +10,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var otp string = "123456"
+type OTPRequest struct {
+	Guess string `json:"guess" binding:"required"`
+}
 
 func main() {
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Println("Warning: No .env file found, relying on system environment variables")
+	}
+
 	router := gin.Default()
 	router.POST("/otp", postOneTimePasswordGuess)
 
@@ -21,21 +28,22 @@ func main() {
 // postOneTimePasswordGuess handles the POST request for OTP verification.
 // It compares the string received from the request body and compares to the otp variable defined in the .env file.
 func postOneTimePasswordGuess(c *gin.Context) {
-	var guess string
+	var req OTPRequest
 
-	if err := c.BindJSON(&guess); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, err)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format. Expected { \"guess\": \"string\" }"})
 		return
 	}
 
-	if err := godotenv.Load("../.env"); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"status": "NO PASSWORD", "guess": guess})
+	secretOTP := os.Getenv("SECRET_OTP")
+	if secretOTP == "" {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"status": "SERVER ERROR", "message": "One time password value is not configured on the server"})
 		return
 	}
 
-	if guess == os.Getenv("SECRET_OTP") {
-		c.IndentedJSON(http.StatusOK, gin.H{"status": "authorized", "guess": guess})
+	if req.Guess == secretOTP {
+		c.IndentedJSON(http.StatusOK, gin.H{"status": "authorized", "guess": req.Guess})
 	} else {
-		c.IndentedJSON(http.StatusUnauthorized, gin.H{"status": "unauthorized", "guess": guess})
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{"status": "unauthorized", "guess": req.Guess})
 	}
 }
