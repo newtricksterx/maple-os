@@ -15,7 +15,7 @@ export async function stageCcnRecords({
     operationType,
 }: StageCcnRequest): Promise<CcnRecord[]> {
 
-    const cleanCcnList = ccnValue.split(/\s+/).filter(Boolean);
+    const cleanCcnList = ccnValue.split(/[,\s]+/).filter(Boolean);
 
     const cleanAwbValue = awbValue.trim();
 
