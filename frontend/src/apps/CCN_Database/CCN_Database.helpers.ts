@@ -166,11 +166,16 @@ export const CcnToCcnRecord = (ccn: string, awb: string): CcnRecord => {
     };
 }
 
-export const dataToHashMap = (data : CcnRecord[]): Map<string, string[]> => {
-    const map = new Map<string, string[]>()
+export type CcnInfo = {
+    ccn: string;
+    comment: string | null;
+}
+
+export const dataToHashMap = (data : CcnRecord[]): Map<string, CcnInfo[]> => {
+    const map = new Map<string, CcnInfo[]>()
 
     for (const record of data) {
-        map.set(record.awb, [...(map.get(record.awb) ?? []), record.ccn])
+        map.set(record.awb, [...(map.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
     }
 
     return map
