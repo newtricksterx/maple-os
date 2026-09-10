@@ -2,10 +2,14 @@ import type { CcnSearchFilters } from "../../CCN_Database.types";
 import '../../CCN_Database.css';
 import { hasSearchFilters } from "../../CCN_Database.helpers";
 import { useMemo } from "react";
+import { CheckBoxSelect } from "../../../../components/CheckBoxSelect/CheckBoxSelect";
 
 interface SearchFormProps {
     searchDraft: CcnSearchFilters;
-    updateSearchDraft: (field: keyof CcnSearchFilters, value: string) => void;
+    updateSearchDraft: <K extends keyof CcnSearchFilters>(
+            field: K, 
+            value: CcnSearchFilters[K]
+        ) => void;
     updateDateRangeDraft: (field: "created_at" | "updated_at", subfield: "from" | "to", value: string) => void;
     applySearch: () => void;
     clearSearch: () => void;
@@ -26,8 +30,9 @@ export const SearchForm = (
         loading, 
         appliedSearch,
         dateRangeError, 
-        isSupabaseConfigured 
+        isSupabaseConfigured,
     }: SearchFormProps) => {
+        const statusOptions = ["Released", "Exam", "CCN not on file", "Rejected", "Pending", "King", "Other"];
 
         const hasAppliedSearch =  useMemo(() => hasSearchFilters(appliedSearch), [appliedSearch]);
 
@@ -92,24 +97,16 @@ export const SearchForm = (
                         />
                     </div>
 
-                    
                     <div className="ccn-database__search-field">
                         <label htmlFor="ccn-search-status" className="ccn-database__search-label">Status</label>
-                        <select
+                        <CheckBoxSelect
                             id="ccn-search-status"
-                            className="ccn-database__search-select"
-                            value={searchDraft.status}
-                            onChange={(event) => updateSearchDraft("status", event.target.value)}
-                        >
-                            <option value="">All</option>
-                            <option value="Released">Released</option>
-                            <option value="Exam">Exam</option>
-                            <option value="CCN not on file">CCN not on file</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Pending">Pending</option>
-                            <option value="King">King</option>
-                            <option value="Other">Other</option>
-                        </select>
+                            options={statusOptions}
+                            selectedValues={searchDraft.status}
+                            onChange={(selected) => {
+                                updateSearchDraft("status", selected);
+                            }}
+                        />
                     </div>
 
                     <div className="ccn-database__search-field">

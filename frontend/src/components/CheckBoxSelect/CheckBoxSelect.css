@@ -1,0 +1,132 @@
+.multiselect-dropdown {
+  position: relative;
+  width: fit-content;
+  min-width: 15ch;
+  color: var(--text);
+}
+
+.select-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(11, 12, 16, 0.9);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.select-box:hover,
+.select-box[aria-expanded="true"] {
+  background: rgba(16, 17, 23, 0.98);
+  border-color: var(--accent);
+}
+
+.select-box:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 158, 255, 0.14);
+}
+
+.select-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-box-chevron {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.select-box[aria-expanded="true"] .select-box-chevron {
+  transform: rotate(180deg);
+}
+
+.options-container {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(320px, calc(100vw - 32px));
+  max-height: 248px;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.option-label:hover {
+  background: var(--hover-strong);
+}
+
+.option-label input[type="checkbox"] {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.option-label input[type="checkbox"]::before {
+  width: 7px;
+  height: 4px;
+  content: "";
+  border-bottom: 2px solid var(--text);
+  border-left: 2px solid var(--text);
+  transform: rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform 0.15s ease;
+}
+
+.option-label input[type="checkbox"]:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.option-label input[type="checkbox"]:checked::before {
+  transform: rotate(-45deg) scale(1);
+}
+
+.option-label input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(94, 158, 255, 0.22);
+}
+
+.option-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+

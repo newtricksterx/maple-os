@@ -163,8 +163,6 @@ export async function getCCNData(ccn: string): Promise<CcnRecord> {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
     }
 
-    console.log(ccn)
-
     const { data, error } = await supabase
         .from("CCN_Registry")
         .select('*')

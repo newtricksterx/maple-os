@@ -14,7 +14,7 @@ const escapeCsvField = (value: string): string => {
     return /[",\r\n]/.test(value) ? `"${escaped}"` : escaped;
 };
 
-export function exportData(ccns: CcnRecord[], status: Status) {
+export function exportData(ccns: CcnRecord[], status: Status[]) {
     const mappedCcns = dataToHashMap(ccns)
 
     const rows: string[] = [];
@@ -40,7 +40,7 @@ export function exportData(ccns: CcnRecord[], status: Status) {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `${getNowDate()}-${status}-export.csv`;
+    link.download = `${getNowDate()}-${status.join(",")}-export.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

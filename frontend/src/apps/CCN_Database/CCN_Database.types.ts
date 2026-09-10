@@ -20,7 +20,7 @@ export type dateRange = {
 export type CcnSearchFilters = {
     awb: string;
     ccn: string;
-    status: string;
+    status: string[];
     created_at: dateRange;
     updated_at: dateRange;
 };

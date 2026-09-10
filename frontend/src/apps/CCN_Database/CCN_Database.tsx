@@ -137,12 +137,17 @@ export function CCN_Database() {
         goToPage(1)
     }, [goToPage, searchDraft]);
 
-    const updateSearchDraftFilters = useCallback((field: keyof CcnSearchFilters, value: string) => {
+    const updateSearchDraftFilters = useCallback(<K extends keyof CcnSearchFilters>(
+        field: K, 
+        value: CcnSearchFilters[K]
+    ) => {
+
         setSearchDraft((currentSearch) => ({
             ...currentSearch,
             [field]: value,
         }));
     }, []);
+
 
     const updateSearchDateRangeDraft = useCallback(
         (field: "created_at" | "updated_at", subfield: "from" | "to", value: string) => {
@@ -275,7 +280,7 @@ export function CCN_Database() {
         try {
             const { data: allMatchingRows } = await requestCcnData(appliedSearch);
             const { exportData } = await import("./ccn-database-services/exportService");
-            exportData(allMatchingRows, appliedSearch.status as Status);
+            exportData(allMatchingRows, appliedSearch.status as Status[]);
         } catch (error) {
             const errorMessage = getCcnErrorMessage(error);
 

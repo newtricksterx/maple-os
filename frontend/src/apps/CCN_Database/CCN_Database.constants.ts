@@ -7,7 +7,7 @@ export const MISSING_SUPABASE_CONFIG_MESSAGE =
 export const EMPTY_SEARCH_FILTERS: CcnSearchFilters = {
     awb: "",
     ccn: "",
-    status: "",
+    status: [],
     created_at: { from: "", to: "" },
     updated_at: { from: "", to: "" },
 };

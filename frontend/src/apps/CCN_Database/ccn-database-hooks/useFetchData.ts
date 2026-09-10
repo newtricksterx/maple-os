@@ -8,6 +8,13 @@ interface CcnData {
     data: CcnRecord[];
 }
 
+function getNextDayStart(date: string): string {
+    const nextDay = new Date(`${date}T00:00:00.000Z`);
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
+    return nextDay.toISOString().slice(0, 10);
+}
+
 export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FILTERS): Promise<CcnData> {
     if (!supabase) {
         throw new Error(MISSING_SUPABASE_CONFIG_MESSAGE);
@@ -24,7 +31,7 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
     }
 
     if (filters.created_at.to) {
-        query = query.lt("created_at", `${filters.created_at.to}T23:59:59`);
+        query = query.lt("created_at", `${getNextDayStart(filters.created_at.to)}T00:00:00`);
     }
 
     if (filters.awb) {
@@ -35,16 +42,18 @@ export async function requestCcnData(filters: CcnSearchFilters = EMPTY_SEARCH_FI
         query = query.ilike("ccn", `%${filters.ccn.toUpperCase()}%`);
     }
 
-    if (filters.status) {
-        query = query.eq("status", filters.status as Status);
+    if (filters.status && filters.status.length > 0) {
+        // Replaces the entire for-loop with a single, efficient database check
+        query = query.in("status", filters.status as Status[]);
     }
+
 
     if (filters.updated_at.from) {
         query = query.gte("updated_at", `${filters.updated_at.from}T00:00:00`);
     }
 
     if (filters.updated_at.to) {
-        query = query.lt("updated_at", `${filters.updated_at.to}T23:59:59`);
+        query = query.lt("updated_at", `${getNextDayStart(filters.updated_at.to)}T00:00:00`);
     }
     /*
 
