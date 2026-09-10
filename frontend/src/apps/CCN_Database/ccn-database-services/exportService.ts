@@ -1,4 +1,4 @@
-import { dataToHashMap, formatDate, formatDateTime, getNowDate } from "../CCN_Database.helpers";
+import { dataToHashMap, formatDateTime, getNowDate } from "../CCN_Database.helpers";
 import type { CcnRecord, Status } from "../CCN_Database.types";
 
 const escapeCsvField = (value: string): string => {
