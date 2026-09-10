@@ -1,4 +1,4 @@
-import { dataToHashMap, getNowDate } from "../CCN_Database.helpers";
+import { dataToHashMap, formatDate, formatDateTime, getNowDate } from "../CCN_Database.helpers";
 import type { CcnRecord, Status } from "../CCN_Database.types";
 
 const escapeCsvField = (value: string): string => {
@@ -18,6 +18,12 @@ export function exportData(ccns: CcnRecord[], status: Status) {
     const mappedCcns = dataToHashMap(ccns)
 
     const rows: string[] = [];
+
+    const today = formatDateTime(new Date().toLocaleString())
+
+    rows.push(`="${today}"`);
+
+    rows.push("")
 
     mappedCcns.forEach((values, key) => {
         rows.push(`${escapeCsvField(key)}`);

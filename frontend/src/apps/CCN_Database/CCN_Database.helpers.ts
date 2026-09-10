@@ -14,6 +14,29 @@ export function formatDate(date?: string) {
     });
 }
 
+export function formatDateTime(date?: string) {
+    if (!date) return "";
+    
+    if (date.length === 10 && !date.includes("T")) {
+        return date;
+    }
+    
+    const formatted = new Date(date).toLocaleString('en-CA', { 
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+
+    // Removes the ", " and replaces it with a regular space
+    // Turns "2026-09-10, 14:17" into "2026-09-10 14:17"
+    return formatted.replace(', ', ' '); 
+}
+
+
 
 export function normalizeStatus(status?: string): Status {
     if (status === "Released" || 
