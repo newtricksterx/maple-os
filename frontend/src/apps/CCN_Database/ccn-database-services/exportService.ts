@@ -27,12 +27,84 @@ export function exportData(ccns: CcnRecord[], status: Status[]) {
 
     rows.push("")
 
-    mappedCcns.forEach((values, key) => {
+    rows.push("Released:")
+    
+    rows.push("")
+
+    mappedCcns.releasedMap.forEach((values, key) => {
         rows.push(`${escapeCsvField(key)}`);
         values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
         rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
         rows.push("");
     });
+
+    rows.push("Exam:")
+
+    rows.push("")
+
+    mappedCcns.examMap.forEach((values, key) => {
+        rows.push(`${escapeCsvField(key)}`);
+        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+        rows.push("");
+    });
+
+    rows.push("CCN not on file:")
+
+    rows.push("")
+
+    mappedCcns.ccnNotOnFileMap.forEach((values, key) => {
+        rows.push(`${escapeCsvField(key)}`);
+        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+        rows.push("");
+    });
+
+    rows.push("Rejected:")
+
+    rows.push("")
+
+    mappedCcns.rejectedMap.forEach((values, key) => {
+        rows.push(`${escapeCsvField(key)}`);
+        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+        rows.push("");
+    });
+
+    rows.push("Pending:")
+
+    rows.push("")
+
+    mappedCcns.pendingMap.forEach((values, key) => {
+        rows.push(`${escapeCsvField(key)}`);
+        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+        rows.push("");
+    });
+
+    rows.push("King:")
+
+    rows.push("")
+
+    mappedCcns.kingMap.forEach((values, key) => {
+        rows.push(`${escapeCsvField(key)}`);
+        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+        rows.push("");
+    });
+
+    rows.push("Other:")
+
+    rows.push("")
+
+    mappedCcns.otherMap.forEach((values, key) => {
+        rows.push(`${escapeCsvField(key)}`);
+        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+        rows.push("");
+    });
+
+    
 
     rows.push(`"Total CCN(s): ${ccns.length}"`);
 

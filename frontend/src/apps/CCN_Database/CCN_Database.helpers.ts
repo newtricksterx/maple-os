@@ -192,14 +192,56 @@ export type CcnInfo = {
     comment: string | null;
 }
 
-export const dataToHashMap = (data : CcnRecord[]): Map<string, CcnInfo[]> => {
-    const map = new Map<string, CcnInfo[]>()
+export type CcnInfoMaps = {
+    releasedMap: Map<string, CcnInfo[]>;
+    examMap: Map<string, CcnInfo[]>;
+    ccnNotOnFileMap: Map<string, CcnInfo[]>;
+    rejectedMap: Map<string, CcnInfo[]>;
+    pendingMap: Map<string, CcnInfo[]>;
+    kingMap: Map<string, CcnInfo[]>;
+    otherMap: Map<string, CcnInfo[]>;
+};
+
+export const dataToHashMap = (data : CcnRecord[]): CcnInfoMaps => {
+    const maps: CcnInfoMaps = {
+        releasedMap: new Map<string, CcnInfo[]>(),
+        examMap: new Map<string, CcnInfo[]>(),
+        ccnNotOnFileMap: new Map<string, CcnInfo[]>(),
+        rejectedMap: new Map<string, CcnInfo[]>(),
+        pendingMap: new Map<string, CcnInfo[]>(),
+        kingMap: new Map<string, CcnInfo[]>(),
+        otherMap: new Map<string, CcnInfo[]>()
+    };
 
     for (const record of data) {
-        map.set(record.awb, [...(map.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+        //maps.releasedMap.set(record.awb, [...(maps.releasedMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+
+        switch (record.status){
+            case "Released":
+                maps.releasedMap.set(record.awb, [...(maps.releasedMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break;
+            case "Exam":
+                maps.examMap.set(record.awb, [...(maps.examMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break;
+            case "CCN not on file":
+                maps.ccnNotOnFileMap.set(record.awb, [...(maps.ccnNotOnFileMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break; 
+            case "Rejected":
+                maps.rejectedMap.set(record.awb, [...(maps.rejectedMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break;
+            case "Pending":
+                maps.pendingMap.set(record.awb, [...(maps.pendingMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break;
+            case "King":
+                maps.kingMap.set(record.awb, [...(maps.kingMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break;
+            case "Other":
+                maps.otherMap.set(record.awb, [...(maps.otherMap.get(record.awb) ?? []), { ccn: record.ccn, comment: record.comment }])
+                break;
+        }
     }
 
-    return map
+    return maps
 }
 
 export const CcnListToString = (ccns: string[]) : string => {
