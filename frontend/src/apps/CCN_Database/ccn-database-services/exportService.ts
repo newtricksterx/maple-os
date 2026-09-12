@@ -27,82 +27,99 @@ export function exportData(ccns: CcnRecord[], status: Status[]) {
 
     rows.push("")
 
-    rows.push("Released:")
+    if (mappedCcns.releasedMap.size > 0) {
+        rows.push("Released:")
     
-    rows.push("")
+        rows.push("")
 
-    mappedCcns.releasedMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        mappedCcns.releasedMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
 
-    rows.push("Exam:")
+    if (mappedCcns.examMap.size > 0) {
+        rows.push("Exam:")
 
-    rows.push("")
+        rows.push("")
 
-    mappedCcns.examMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        mappedCcns.examMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
 
-    rows.push("CCN not on file:")
+    if (mappedCcns.ccnNotOnFileMap.size > 0) {
+        rows.push("CCN not on file:")
 
-    rows.push("")
+        rows.push("")
 
-    mappedCcns.ccnNotOnFileMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        mappedCcns.ccnNotOnFileMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
 
-    rows.push("Rejected:")
+    if (mappedCcns.rejectedMap.size > 0) {
+        rows.push("Rejected:")
 
-    rows.push("")
+        rows.push("")
 
-    mappedCcns.rejectedMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        mappedCcns.rejectedMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
 
-    rows.push("Pending:")
 
-    rows.push("")
+    if (mappedCcns.pendingMap.size > 0) {
+        rows.push("Pending:")
 
-    mappedCcns.pendingMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        rows.push("")
 
-    rows.push("King:")
+        mappedCcns.pendingMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
 
-    rows.push("")
+    if (mappedCcns.kingMap.size > 0) {
+        rows.push("King:")
 
-    mappedCcns.kingMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        rows.push("")
 
-    rows.push("Other:")
+        mappedCcns.kingMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
 
-    rows.push("")
+    if (mappedCcns.otherMap.size > 0) {
+        rows.push("Other:")
 
-    mappedCcns.otherMap.forEach((values, key) => {
-        rows.push(`${escapeCsvField(key)}`);
-        values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-        rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-        rows.push("");
-    });
+        rows.push("")
+
+        mappedCcns.otherMap.forEach((values, key) => {
+            rows.push(`${escapeCsvField(key)}`);
+            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
+            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
+            rows.push("");
+        });
+    }
+
+
 
     
 
