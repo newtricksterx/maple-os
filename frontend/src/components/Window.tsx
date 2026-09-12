@@ -4,7 +4,7 @@ import type { WindowManager } from '../os/useWindowManager'
 import { getApp } from '../apps/registry'
 import './Window.css'
 
-const TASKBAR_HEIGHT = 56
+const TASKBAR_HEIGHT = 48
 const MIN_WIDTH = 240
 const MIN_HEIGHT = 160
 const RESIZE_DIRECTIONS = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'] as const

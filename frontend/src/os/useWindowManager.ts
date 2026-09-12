@@ -1,9 +1,12 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AppId, WindowInstance } from './types'
 import { getApp } from '../apps/registry'
 
 const DEFAULT_SIZE = { width: 480, height: 340 }
 const TASKBAR_HEIGHT = 48
+const WINDOW_GUTTER = 24
+const MIN_WINDOW_WIDTH = 240
+const MIN_WINDOW_HEIGHT = 160
 
 export interface WindowManager {
   windows: WindowInstance[]
@@ -22,12 +25,62 @@ export interface WindowManager {
   activateWindow: (id: string) => void
 }
 
+function getFittedWindowSize(size: { width: number; height: number }) {
+  const availableWidth = Math.max(
+    MIN_WINDOW_WIDTH,
+    Math.floor(window.innerWidth * 0.92),
+  )
+  const availableHeight = Math.max(
+    MIN_WINDOW_HEIGHT,
+    Math.floor((window.innerHeight - TASKBAR_HEIGHT) * 0.9),
+  )
+
+  return {
+    width: Math.min(size.width, availableWidth),
+    height: Math.min(size.height, availableHeight),
+  }
+}
+
+function getCenteredPosition(width: number, height: number) {
+  return {
+    x: Math.max(WINDOW_GUTTER, Math.round((window.innerWidth - width) / 2)),
+    y: Math.max(
+      WINDOW_GUTTER,
+      Math.round((window.innerHeight - TASKBAR_HEIGHT - height) / 2),
+    ),
+  }
+}
+
 export function useWindowManager(): WindowManager {
   const [windows, setWindows] = useState<WindowInstance[]>([])
   const zCounter = useRef(1)
   const idCounter = useRef(1)
 
   const nextZ = () => (zCounter.current += 1)
+
+  useEffect(() => {
+    const keepWindowsInView = () => {
+      setWindows((prev) =>
+        prev.map((win) => {
+          if (win.maximized) return win
+
+          const size = getFittedWindowSize(win)
+          const maxX = Math.max(0, window.innerWidth - size.width)
+          const maxY = Math.max(
+            0,
+            window.innerHeight - TASKBAR_HEIGHT - size.height,
+          )
+          const x = Math.min(Math.max(0, win.x), maxX)
+          const y = Math.min(Math.max(0, win.y), maxY)
+
+          return { ...win, ...size, x, y }
+        }),
+      )
+    }
+
+    window.addEventListener('resize', keepWindowsInView)
+    return () => window.removeEventListener('resize', keepWindowsInView)
+  }, [])
 
   const activeId =
     windows.length > 0
@@ -39,13 +92,9 @@ export function useWindowManager(): WindowManager {
   const openApp = useCallback((appId: AppId) => {
     const app = getApp(appId)
     if (!app) return
-    const size = app.defaultSize ?? DEFAULT_SIZE
+    const size = getFittedWindowSize(app.defaultSize ?? DEFAULT_SIZE)
     // Always open centered on the desktop (area above the taskbar).
-    const x = Math.max(0, Math.round((window.innerWidth - size.width) / 2))
-    const y = Math.max(
-      0,
-      Math.round((window.innerHeight - TASKBAR_HEIGHT - size.height) / 2),
-    )
+    const { x, y } = getCenteredPosition(size.width, size.height)
 
     setWindows((prev) => {
       const existing = prev.find((w) => w.appId === appId)
