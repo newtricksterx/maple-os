@@ -26,7 +26,7 @@ export const APPS: AppDefinition[] = [
   },
   {
     id: 'generate_arrival', title: 'Generate Arrival Document', imgAlt: '🛬', component: GenerateArrival,
-    defaultSize: { width: 500, height: 490 },
+    defaultSize: { width: 500, height: 725 },
     imgUrl: arrivalDocIcon
   },
   {

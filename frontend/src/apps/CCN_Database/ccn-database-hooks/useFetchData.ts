@@ -105,10 +105,10 @@ interface FetchDataResult {
 
 interface FetchDataOptions {
     filters: CcnSearchFilters;
-    refreshToggle: boolean
+    refreshVersion: number;
 }
 
-export function useFetchData({ filters, refreshToggle }: FetchDataOptions): FetchDataResult {
+export function useFetchData({ filters, refreshVersion }: FetchDataOptions): FetchDataResult {
     const [data, setData] = useState<CcnRecord[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -147,7 +147,7 @@ export function useFetchData({ filters, refreshToggle }: FetchDataOptions): Fetc
         };
         // filtersKey stands in for filters to avoid refiring on new-but-equal object references
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filtersKey, refreshToggle]);
+    }, [filtersKey, refreshVersion]);
 
     return {
         data,

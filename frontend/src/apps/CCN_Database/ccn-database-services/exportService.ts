@@ -1,12 +1,14 @@
-import { dataToHashMap, formatDateTime, getNowDate } from "../CCN_Database.helpers";
+import { dataToHashMap, formatDateTime } from "../CCN_Database.helpers";
 import type { CcnRecord, Status } from "../CCN_Database.types";
 
 const escapeCsvField = (value: string): string => {
     const looksNumeric = /^[+-]?\d+(\.\d+)?$/.test(value) || /^0\d+/.test(value);
 
-    const escaped = value.replace(/"/g, '""');
+    const hasFormulaPrefix = /^[\t\r ]*[=+\-@]/.test(value);
+    const safeValue = hasFormulaPrefix ? `'${value}` : value;
+    const escaped = safeValue.replace(/"/g, '""');
 
-    if (looksNumeric) {
+    if (looksNumeric && !hasFormulaPrefix) {
         return `="${escaped}"`;
     }
 
@@ -19,9 +21,9 @@ export function exportData(ccns: CcnRecord[], status: Status[]) {
 
     const rows: string[] = [];
 
-    const today = formatDateTime(new Date().toLocaleString())
+    const today = formatDateTime(new Date().toISOString())
 
-    rows.push(`="${today}"`);
+    rows.push(escapeCsvField(today));
 
     rows.push("")
 
@@ -40,7 +42,12 @@ export function exportData(ccns: CcnRecord[], status: Status[]) {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `${getNowDate()}-${status.join(",")}-export.csv`;
+    const statusLabel = (status.length > 0 ? status.join("-") : "all-statuses")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/(^-|-$)/g, "")
+        .toLowerCase();
+
+    link.download = `${new Date().toISOString().slice(0, 10)}-${statusLabel}-export.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

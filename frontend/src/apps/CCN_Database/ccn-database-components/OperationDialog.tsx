@@ -40,7 +40,7 @@ export const OperationDialog = ({ title, disabled, stagedCcnRecords, renderList,
                 </button>
             </Dialog.Trigger>
             <Dialog.Overlay className="ccn-dialog__overlay" />
-            <Dialog.Content className="ccn-dialog">
+            <Dialog.Content className="ccn-dialog" aria-describedby={undefined}>
                 <div className="ccn-dialog__header">
                     <div className="ccn-dialog__heading">
                         <Dialog.Title className="ccn-dialog__title">

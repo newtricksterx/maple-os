@@ -23,6 +23,10 @@ export async function stageCcnRecords({
         throw new Error("Please enter at least one CCN.");
     }
 
+    if (new Set(cleanCcnList).size !== cleanCcnList.length) {
+        throw new Error("Each CCN can be entered only once.");
+    }
+
     if (operationType === "INSERT" && !cleanAwbValue) {
         throw new Error("Please enter an AWB.");
     }

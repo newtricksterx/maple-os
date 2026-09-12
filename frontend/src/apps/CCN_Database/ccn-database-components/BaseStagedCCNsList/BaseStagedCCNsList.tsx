@@ -10,6 +10,7 @@ interface StagedCcnListProps {
     handleDateChange: (ccn: string, date: string) => void;
     handleResetForm: () => void;
     handleSubmit: () => void;
+    loading: boolean;
     submitButtonText: string;
     operationType: OperationType;
     errorMessage?: string | null;
@@ -23,24 +24,25 @@ export const BaseStagedCCNsList = (
         handleDateChange, 
         handleResetForm, 
         handleSubmit,
+        loading,
         submitButtonText,
         operationType,
     } : StagedCcnListProps) => {
     return (
         <div className="ccn-database__staged">
             <div className="ccn-database__staged-header">
-                <h3>Staged CCNs<span className="ccn-database__staged-header-subtitle"> - changes are saved automatically</span></h3>
+                <h3>Staged CCNs</h3>
             </div>
 
                 <div className="ccn-table-shell-staged ccn-database__staged-table">
                     <table className="ccn-table" aria-label="Staged CCN records">
                         <thead>
                             <tr>
-                                <th>CCN</th>
-                                <th>AWB</th>
-                                <th>Status</th>
-                                <th>Comment</th>
-                                <th>Created At</th>
+                                <th scope="col">CCN</th>
+                                <th scope="col">AWB</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Comment</th>
+                                <th scope="col">Created At</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -49,7 +51,7 @@ export const BaseStagedCCNsList = (
                                     <td>{record.ccn}</td>
                                     <td>{record.awb}</td>
                                     <td>
-                                        <select id={`status-${record.ccn}`} name={`status-${record.ccn}`} className={`dropdown`} value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
+                                        <select id={`status-${record.ccn}`} name={`status-${record.ccn}`} className="dropdown" aria-label={`Status for CCN ${record.ccn}`} value={record.status} onChange={(e) => handleStatusChange(record.ccn, e.target.value as Status)}>
                                             <option className="released" value="Released">Released</option>
                                             <option className="exam" value="Exam">Exam</option>
                                             <option className="ccn_not_on_file" value="CCN not on file">CCN not on file</option>
@@ -64,6 +66,7 @@ export const BaseStagedCCNsList = (
                                             type="text" 
                                             className="comment"
                                             placeholder="Enter comment..." 
+                                            aria-label={`Comment for CCN ${record.ccn}`}
                                             value={record.comment || ""} 
                                             onChange={(e) => handleCommentChange(record.ccn, e.target.value)}
                                         />
@@ -73,6 +76,7 @@ export const BaseStagedCCNsList = (
                                             <input
                                                 className="date" 
                                                 type="date" 
+                                                aria-label={`Created date for CCN ${record.ccn}`}
                                                 value={formatDate(record.created_at)} 
                                                 onChange={(e) => handleDateChange(record.ccn, e.target.value)} />
                                             : <span className="date">{formatDate(record.created_at)}</span>
@@ -90,6 +94,7 @@ export const BaseStagedCCNsList = (
                         className="ccn-database__reset-button"
                         type="button"
                         onClick={handleResetForm}
+                        disabled={loading}
                     >
                         Reset
                     </button>
@@ -98,6 +103,8 @@ export const BaseStagedCCNsList = (
                         className="ccn-database__add-button"
                         type="button"
                         onClick={handleSubmit}
+                        disabled={loading}
+                        aria-busy={loading}
                     >
                         {submitButtonText}
                     </button>

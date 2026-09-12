@@ -74,6 +74,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
+    flex-wrap: wrap;
     flex: 0 0 auto;
 }
 
@@ -146,7 +147,7 @@
     z-index: 100000;
     width: min(calc(100vw - 32px), 810px);
     max-height: min(calc(100vh - 32px), 760px);
-    min-width: 900px;
+    min-width: 0;
     overflow: auto;
     color: var(--text);
     background: rgba(32, 32, 37, 0.96);
@@ -334,6 +335,7 @@
     flex-direction: row;
     justify-content: space-between;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .ccn-database__search-field {
@@ -412,6 +414,16 @@
 
 .ccn-database__search-input:focus {
     background: rgba(16, 17, 23, 0.98);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(94, 158, 255, 0.14);
+}
+
+.ccn-database__search-date:focus,
+.ccn-database-textarea:focus,
+.ccn-database-input:focus,
+.dropdown:focus,
+.comment:focus,
+.date:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(94, 158, 255, 0.14);
 }
@@ -751,6 +763,24 @@
     transform: translateY(-1px);
 }
 
+.ccn-database__reset-button:disabled,
+.ccn-database__add-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.ccn-database__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .ccn-database-textarea {
     width: 100%;
     min-height: 110px;
@@ -833,6 +863,19 @@
         width: 100%;
     }
 
+    .ccn-database__search-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ccn-database__search-field {
+        width: 100%;
+    }
+
+    .ccn-database__search-field-dates {
+        flex-wrap: wrap;
+    }
+
     .ccn-database__staged-row {
         grid-template-columns: 1fr 1fr;
     }
@@ -886,5 +929,15 @@
     .ccn-database__pagination {
         display: grid;
         grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ccn-database,
+    .ccn-dialog__overlay,
+    .ccn-dialog,
+    .ccn-database * {
+        animation: none;
+        transition: none;
     }
 }

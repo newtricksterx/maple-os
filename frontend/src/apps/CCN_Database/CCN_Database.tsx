@@ -15,7 +15,7 @@ import { BaseStagedCCNsList } from "./ccn-database-components/BaseStagedCCNsList
 import { ExitIcon } from "@radix-ui/react-icons";
 import { stageCcnRecords } from "./ccn-database-services/stageService";
 import { saveCcnRecords } from "./ccn-database-services/saveService";
-import { requestCcnData, useFetchData } from "./ccn-database-hooks/useFetchData";
+import { useFetchData } from "./ccn-database-hooks/useFetchData";
 import { SearchForm } from "./ccn-database-components/SearchForm/SearchForm";
 import { DatabaseTable } from "./ccn-database-components/DatabaseTable/DatabaseTable";
 import ToastMessage from "../../components/ToastMessage/ToastMessage";
@@ -23,7 +23,6 @@ import ToastMessage from "../../components/ToastMessage/ToastMessage";
 
 export function CCN_Database() {
     const [currentPage, setCurrentPage] = useState(1);
-    const [currentIndex, setCurrentIndex] = useState(0);
 
     const [toast, setToast] = useState<ToastState>({
         open: false,
@@ -32,7 +31,8 @@ export function CCN_Database() {
         message: "",
     });
 
-    const [refreshToggle, setRefreshToggle] = useState(false);
+    const [refreshVersion, setRefreshVersion] = useState(0);
+    const [exportLoading, setExportLoading] = useState(false);
 
     const [searchDraft, setSearchDraft] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
     const [appliedSearch, setAppliedSearch] = useState<CcnSearchFilters>(EMPTY_SEARCH_FILTERS);
@@ -47,6 +47,33 @@ export function CCN_Database() {
 
     const uniqueId = useId();
     const channelId = useRef(`ccn_registry_changes_${uniqueId}`)
+    const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastRefreshAtRef = useRef(0);
+
+    const refreshData = useCallback(() => {
+        if (refreshTimeoutRef.current !== null) {
+            clearTimeout(refreshTimeoutRef.current);
+            refreshTimeoutRef.current = null;
+        }
+
+        lastRefreshAtRef.current = Date.now();
+        setRefreshVersion((version) => version + 1);
+    }, []);
+
+    const queueRealtimeRefresh = useCallback(() => {
+        // A bulk save emits one Postgres event per affected row. Refresh once after
+        // the burst instead of issuing a full query for every individual event.
+        if (Date.now() - lastRefreshAtRef.current < 500) return;
+
+        if (refreshTimeoutRef.current !== null) {
+            clearTimeout(refreshTimeoutRef.current);
+        }
+
+        refreshTimeoutRef.current = setTimeout(() => {
+            refreshTimeoutRef.current = null;
+            refreshData();
+        }, 250);
+    }, [refreshData]);
 
     const dateRangeError = hasInvalidDateRange(searchDraft)
         ? "To date cannot be before From date."
@@ -54,7 +81,7 @@ export function CCN_Database() {
 
     const { data, loading, error } = useFetchData({
         filters: appliedSearch,
-        refreshToggle: refreshToggle
+        refreshVersion,
     });
 
     useEffect(() => {
@@ -67,19 +94,22 @@ export function CCN_Database() {
         .on(
             "postgres_changes",
             { event: "*", schema: "public", table: "CCN_Registry" },
-            () => {
-                setRefreshToggle((prev) => !prev);
-            }
+            queueRealtimeRefresh
         )
         .subscribe();
 
         return () => {
+            if (refreshTimeoutRef.current !== null) {
+                clearTimeout(refreshTimeoutRef.current);
+            }
             client.removeChannel(channel);
         };
-    }, []);
+    }, [queueRealtimeRefresh]);
 
     const totalRows = useMemo(() => data.length, [data]);
     const totalPages = useMemo(() => Math.max(Math.ceil(totalRows / ITEMS_PER_PAGE), 1), [totalRows]);
+    const displayedPage = Math.min(currentPage, totalPages);
+    const currentIndex = (displayedPage - 1) * ITEMS_PER_PAGE;
 
     const statusCounts = useMemo(() => {
         const counts = { released: 0, exam: 0, ccn_not_on_file: 0, rejected: 0, other: 0 };
@@ -118,13 +148,11 @@ export function CCN_Database() {
     }, []);
 
     const goToPage = useCallback((page: number) => {
+        if (loading) return;
+
         setCurrentPage((current) => {
             const nextPage = Math.min(Math.max(page, 1), totalPages);
-            setCurrentIndex(() => {
-                const nextIndex = (nextPage - 1) * ITEMS_PER_PAGE;
-                return nextIndex;
-            });
-            return loading || nextPage === current ? current : nextPage;
+            return nextPage === current ? current : nextPage;
         });
     }, [loading, totalPages]);
 
@@ -236,7 +264,7 @@ export function CCN_Database() {
     }, [])
 
     const executeDatabaseOperation = useCallback(async () => {
-        if (stagedCcnRecords.length === 0) {
+        if (operationLoading || stagedCcnRecords.length === 0) {
             return;
         }
 
@@ -251,7 +279,8 @@ export function CCN_Database() {
                 response.successMessage ?? "Operation completed successfully."
             );
 
-            setRefreshToggle((prev) => !prev);
+            resetCcnStagingForm();
+            refreshData();
             goToPage(1);
         } catch (error) {
             console.error("Error attempting operation:", error);
@@ -266,7 +295,7 @@ export function CCN_Database() {
         } finally {
             setOperationLoading(false);
         }
-    }, [stagedCcnRecords, showToast, goToPage]);
+    }, [stagedCcnRecords, operationLoading, showToast, resetCcnStagingForm, refreshData, goToPage]);
 
     const clearSearchFilters = useCallback(() => {
         const clearedSearch = normalizeSearchFilters(EMPTY_SEARCH_FILTERS);
@@ -277,16 +306,21 @@ export function CCN_Database() {
     }, [goToPage]);
 
     const exportCCNDatabase = useCallback(async () => {
+        if (exportLoading || !isSupabaseConfigured) return;
+
+        setExportLoading(true);
+
         try {
-            const { data: allMatchingRows } = await requestCcnData(appliedSearch);
             const { exportData } = await import("./ccn-database-services/exportService");
-            exportData(allMatchingRows, appliedSearch.status as Status[]);
+            exportData(data, appliedSearch.status as Status[]);
         } catch (error) {
             const errorMessage = getCcnErrorMessage(error);
 
             showToast("error", "Error", errorMessage);
+        } finally {
+            setExportLoading(false);
         }
-    }, [appliedSearch, showToast]);
+    }, [appliedSearch, data, exportLoading, showToast]);
 
     const switchOperationType = useCallback((type: OperationType) => {
         setOperationType((current) => {
@@ -313,7 +347,13 @@ export function CCN_Database() {
 
 
                 <div className="ccn-database__actions">
-                    <button className="ccn-database__export" title="Export Data Shown" disabled={!data.length} onClick={exportCCNDatabase}>
+                    <button
+                        className="ccn-database__export"
+                        title="Export matching data"
+                        disabled={loading || exportLoading || !data.length || !isSupabaseConfigured}
+                        aria-busy={exportLoading}
+                        onClick={exportCCNDatabase}
+                    >
                         <ExitIcon />
                         Export
                     </button>
@@ -329,6 +369,7 @@ export function CCN_Database() {
                                             handleDateChange={ccnDateChange}
                                             handleResetForm={resetCcnStagingForm}
                                             handleSubmit={executeDatabaseOperation}
+                                            loading={operationLoading}
                                             submitButtonText="Update to Database"
                                             operationType="UPDATE"
                                         />)}
@@ -358,6 +399,7 @@ export function CCN_Database() {
                                             handleDateChange={ccnDateChange}
                                             handleResetForm={resetCcnStagingForm}
                                             handleSubmit={executeDatabaseOperation}
+                                            loading={operationLoading}
                                             submitButtonText="Add to Database"
                                             operationType="INSERT"
                                         />)}
@@ -397,7 +439,7 @@ export function CCN_Database() {
             </div>
 
             {error ? (
-                <p className="ccn-database__notice ccn-database__notice--error">{error}</p>
+                <p className="ccn-database__notice ccn-database__notice--error" role="alert">{error}</p>
             ) : null}
 
             <SearchForm
@@ -416,7 +458,7 @@ export function CCN_Database() {
                 data={data}
                 loading={loading}
                 currentIndex={currentIndex}
-                currentPage={currentPage}
+                currentPage={displayedPage}
                 totalPages={totalPages}
                 goToPage={goToPage}
             />

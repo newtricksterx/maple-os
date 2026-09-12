@@ -110,12 +110,13 @@ export const SearchForm = (
                     </div>
 
                     <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-created-from" className="ccn-database__search-label">Created At</label>
+                        <span className="ccn-database__search-label">Created At</span>
                         <div className="ccn-database__search-field-dates">
                             <input
                                 type="date"
                                 id="ccn-search-created-from"
                                 className="ccn-database__search-date"
+                                aria-label="Created at, from"
                                 value={searchDraft.created_at.from}
                                 max={searchDraft.created_at.to || undefined}
                                 aria-invalid={Boolean(dateRangeError)}
@@ -127,6 +128,7 @@ export const SearchForm = (
                                 type="date"
                                 id="ccn-search-created-to"
                                 className="ccn-database__search-date"
+                                aria-label="Created at, to"
                                 value={searchDraft.created_at.to}
                                 min={searchDraft.created_at.from || undefined}
                                 aria-invalid={Boolean(dateRangeError)}
@@ -137,12 +139,13 @@ export const SearchForm = (
                     </div>
 
                     <div className="ccn-database__search-field">
-                        <label htmlFor="ccn-search-updated-from" className="ccn-database__search-label">Updated At</label>
+                        <span className="ccn-database__search-label">Updated At</span>
                         <div className="ccn-database__search-field-dates">
                             <input
                                 type="date"
                                 id="ccn-search-updated-from"
                                 className="ccn-database__search-date"
+                                aria-label="Updated at, from"
                                 value={searchDraft.updated_at.from}
                                 max={searchDraft.updated_at.to || undefined}
                                 aria-invalid={Boolean(dateRangeError)}
@@ -154,6 +157,7 @@ export const SearchForm = (
                                 type="date"
                                 id="ccn-search-updated-to"
                                 className="ccn-database__search-date"
+                                aria-label="Updated at, to"
                                 value={searchDraft.updated_at.to}
                                 min={searchDraft.updated_at.from || undefined}
                                 aria-invalid={Boolean(dateRangeError)}
