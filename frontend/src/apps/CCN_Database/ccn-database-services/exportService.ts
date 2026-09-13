@@ -2,21 +2,6 @@ import { dataToHashMap, formatDateTime, type CcnInfo } from "../CCN_Database.hel
 import type { CcnRecord, Status } from "../CCN_Database.types";
 import ExcelJS from "exceljs";
 
-const escapeCsvField = (value: string): string => {
-    const looksNumeric = /^[+-]?\d+(\.\d+)?$/.test(value) || /^0\d+/.test(value);
-
-    const hasFormulaPrefix = /^[\t\r ]*[=+\-@]/.test(value);
-    const safeValue = hasFormulaPrefix ? `'${value}` : value;
-    const escaped = safeValue.replace(/"/g, '""');
-
-    if (looksNumeric && !hasFormulaPrefix) {
-        return `="${escaped}"`;
-    }
-
-    // Standard CSV quoting for anything with commas, quotes, or newlines
-    return /[",\r\n]/.test(value) ? `"${escaped}"` : escaped;
-};
-
 export async function exportData(ccns: CcnRecord[], status: Status[]): Promise<void> {
     const mappedCcns = dataToHashMap(ccns);
 
