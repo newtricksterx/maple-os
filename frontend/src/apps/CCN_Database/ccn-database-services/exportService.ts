@@ -1,5 +1,6 @@
-import { dataToHashMap, formatDateTime } from "../CCN_Database.helpers";
+import { dataToHashMap, formatDateTime, type CcnInfo } from "../CCN_Database.helpers";
 import type { CcnRecord, Status } from "../CCN_Database.types";
+import ExcelJS from "exceljs";
 
 const escapeCsvField = (value: string): string => {
     const looksNumeric = /^[+-]?\d+(\.\d+)?$/.test(value) || /^0\d+/.test(value);
@@ -16,117 +17,66 @@ const escapeCsvField = (value: string): string => {
     return /[",\r\n]/.test(value) ? `"${escaped}"` : escaped;
 };
 
-export function exportData(ccns: CcnRecord[], status: Status[]) {
-    const mappedCcns = dataToHashMap(ccns)
+export async function exportData(ccns: CcnRecord[], status: Status[]): Promise<void> {
+    const mappedCcns = dataToHashMap(ccns);
 
-    const rows: string[] = [];
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Export");
 
-    const today = formatDateTime(new Date().toISOString())
+    const today = formatDateTime(new Date().toISOString());
+    sheet.addRow([today]).font = { bold: true };
+    sheet.addRow([]);
 
-    rows.push(escapeCsvField(today));
+    // Same seven buckets, same order, as the original CSV export.
+    const sections: Array<[string, Map<string, CcnInfo[]>]> = [
+        ["Released", mappedCcns.releasedMap],
+        ["Exam", mappedCcns.examMap],
+        ["CCN not on file", mappedCcns.ccnNotOnFileMap],
+        ["Rejected", mappedCcns.rejectedMap],
+        ["Pending", mappedCcns.pendingMap],
+        ["King", mappedCcns.kingMap],
+        ["Other", mappedCcns.otherMap],
+    ];
 
-    rows.push("")
+    for (const [status, map] of sections) {
+        if (map.size === 0) continue;
 
-    if (mappedCcns.releasedMap.size > 0) {
-        rows.push("Released:")
-    
-        rows.push("")
+        const sectionHeader = sheet.addRow([`${status}:`]);
+        sectionHeader.font = { bold: true, underline: 'single', size: 12 };
+        sheet.addRow([]);
 
-        mappedCcns.releasedMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
+        map.forEach((values, key) => {
+            const groupHeader = sheet.addRow([key]);
+            groupHeader.font = { bold: true };
+
+            values.forEach((value) => {
+                sheet.addRow([value.ccn, value.comment ?? ""]);
+            });
+
+            const countRow = sheet.addRow([
+                `${values.length} CCN${values.length === 1 ? "" : "s"} above`,
+            ]);
+            countRow.font = { italic: true };
+            sheet.addRow([]);
         });
     }
 
-    if (mappedCcns.examMap.size > 0) {
-        rows.push("Exam:")
+    const totalRow = sheet.addRow([`Total CCN(s): ${ccns.length}`]);
+    totalRow.font = { bold: true };
 
-        rows.push("")
-
-        mappedCcns.examMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
+    sheet.columns.forEach((column) => {
+        let maxLength = 10;
+        column.eachCell?.({ includeEmpty: true }, (cell) => {
+            const len = cell.value ? String(cell.value).length : 0;
+            if (len > maxLength) maxLength = len;
         });
-    }
+        column.width = maxLength + 2;
+    });
 
-    if (mappedCcns.ccnNotOnFileMap.size > 0) {
-        rows.push("CCN not on file:")
-
-        rows.push("")
-
-        mappedCcns.ccnNotOnFileMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
-        });
-    }
-
-    if (mappedCcns.rejectedMap.size > 0) {
-        rows.push("Rejected:")
-
-        rows.push("")
-
-        mappedCcns.rejectedMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
-        });
-    }
-
-
-    if (mappedCcns.pendingMap.size > 0) {
-        rows.push("Pending:")
-
-        rows.push("")
-
-        mappedCcns.pendingMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
-        });
-    }
-
-    if (mappedCcns.kingMap.size > 0) {
-        rows.push("King:")
-
-        rows.push("")
-
-        mappedCcns.kingMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
-        });
-    }
-
-    if (mappedCcns.otherMap.size > 0) {
-        rows.push("Other:")
-
-        rows.push("")
-
-        mappedCcns.otherMap.forEach((values, key) => {
-            rows.push(`${escapeCsvField(key)}`);
-            values.forEach((value) => rows.push(`${escapeCsvField(value.ccn)},${value.comment ? escapeCsvField(value.comment) : ""}`));
-            rows.push(`${values.length} CCN${values.length === 1 ? "" : "s"} above`);
-            rows.push("");
-        });
-    }
-
-
-
-    
-
-    rows.push(`"Total CCN(s): ${ccns.length}"`);
-
-    const csvContent = "\uFEFF" + rows.join("\r\n"); // BOM helps WPS/Excel detect UTF-8 correctly
-    const file = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const buffer = await workbook.xlsx.writeBuffer();
+    const file = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
 
@@ -136,7 +86,7 @@ export function exportData(ccns: CcnRecord[], status: Status[]) {
         .replace(/(^-|-$)/g, "")
         .toLowerCase();
 
-    link.download = `${new Date().toISOString().slice(0, 10)}-${statusLabel}-export.csv`;
+    link.download = `${new Date().toISOString().slice(0, 10)}-${statusLabel}-export.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
