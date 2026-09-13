@@ -51,7 +51,7 @@ export async function exportData(ccns: CcnRecord[], status: Status[]): Promise<v
 
     sheet.columns.forEach((column) => {
         let maxLength = 10;
-        column.eachCell?.({ includeEmpty: true }, (cell) => {
+        column.eachCell?.({ includeEmpty: true }, (cell: ExcelJS.Cell) => {
             const len = cell.value ? String(cell.value).length : 0;
             if (len > maxLength) maxLength = len;
         });
