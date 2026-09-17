@@ -1,9 +1,9 @@
 import type { AppDefinition, AppId } from '../os/types'
-import { Notes } from './Notes/Notes'
-import { Calculator } from './Calculator/Calculator'
-import { GenerateArrival } from './GenerateArrival/GenerateArrival'
-import { BoxIntersect } from './BoxIntersect/BoxIntersect'
-import { CCN_Database } from './CCN_Database/CCN_Database';
+import { Notes } from '../apps/Notes/Notes'
+import { Calculator } from '../apps/Calculator/Calculator'
+import { GenerateArrival } from '../apps/GenerateArrival/GenerateArrival'
+import { BoxIntersect } from '../apps/BoxIntersect/BoxIntersect'
+import { CCN_Database } from '../apps/CCN_Database/CCN_Database';
 import dbIcon from '../icons/database_icon.png'
 import calculatorIcon from '../icons/calculator_icon.png'
 import notesIcon from '../icons/notes_icon.png'
@@ -41,6 +41,14 @@ export const APPS: AppDefinition[] = [
     component: CCN_Database,
     defaultSize: { width: 1300, height: 750 },
     imgUrl: dbIcon
+  },
+  {
+    id: 'coperation_records',
+    title: 'Operation Records (Work in Progress)',
+    imgAlt: '😄',
+    component: CCN_Database,
+    defaultSize: { width: 1300, height: 750 },
+    imgUrl: ''
   }
 ]
 

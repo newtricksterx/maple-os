@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AppId, WindowInstance } from './types'
-import { getApp } from '../apps/registry'
+import { getApp } from '../components/registry'
 
 const DEFAULT_SIZE = { width: 480, height: 340 }
 const TASKBAR_HEIGHT = 48

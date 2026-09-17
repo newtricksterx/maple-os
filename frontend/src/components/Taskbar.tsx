@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { WindowManager } from '../os/useWindowManager'
-import { getApp } from '../apps/registry'
+import { getApp } from './registry'
 import './Taskbar.css'
 
 interface TaskbarProps {

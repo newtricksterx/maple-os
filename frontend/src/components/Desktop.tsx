@@ -1,5 +1,5 @@
 import type { AppId } from '../os/types'
-import { APPS } from '../apps/registry'
+import { APPS } from './registry'
 import { DesktopIcon } from './DesktopIcon'
 import './Desktop.css'
 

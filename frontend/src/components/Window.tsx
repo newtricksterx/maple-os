@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import type { WindowInstance } from '../os/types'
 import type { WindowManager } from '../os/useWindowManager'
-import { getApp } from '../apps/registry'
+import { getApp } from './registry'
 import './Window.css'
 
 const TASKBAR_HEIGHT = 48
