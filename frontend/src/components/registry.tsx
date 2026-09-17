@@ -4,6 +4,7 @@ import { Calculator } from '../apps/Calculator/Calculator'
 import { GenerateArrival } from '../apps/GenerateArrival/GenerateArrival'
 import { BoxIntersect } from '../apps/BoxIntersect/BoxIntersect'
 import { CCN_Database } from '../apps/CCN_Database/CCN_Database';
+import { OperationRecords } from '../apps/OperationRecords/OperationRecords';
 import dbIcon from '../icons/database_icon.png'
 import calculatorIcon from '../icons/calculator_icon.png'
 import notesIcon from '../icons/notes_icon.png'
@@ -46,7 +47,7 @@ export const APPS: AppDefinition[] = [
     id: 'coperation_records',
     title: 'Operation Records (Work in Progress)',
     imgAlt: '😄',
-    component: CCN_Database,
+    component: OperationRecords,
     defaultSize: { width: 1300, height: 750 },
     imgUrl: ''
   }
