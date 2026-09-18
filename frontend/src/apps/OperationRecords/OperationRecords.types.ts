@@ -8,6 +8,10 @@ type record_type = "IID"
 
 type trucking_company = "FasterMoving" | "SpeedFlex"
 
+type pcs_type = {
+    total: number | null;
+}
+
 export type record = {
     id: number;
     record_type: record_type;
@@ -16,7 +20,7 @@ export type record = {
     status: record_status;
     eta_airport: string;
     cargo_dest: airlines;
-    pcs: number | null;
+    pcs: pcs_type;
     weight: number | null;
     cbm: number | null;
     skid: number | null;
